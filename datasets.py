@@ -101,12 +101,18 @@ class BagDataCollate():
         # 输入一个batch的bag
 
         bsid, bimgs, blabel = batch
+        print("bsid",bsid)
+        print("bimgs",bimgs)
+        print("blabel",blabel)
         size = len(bsid)
-
+        print("point--------point")
         # 统计每个bag的patch数量
         nslice = [x.shape[0] for x in bimgs]
         max_slice = max(nslice)
-
+        print("point--------point")
+        print("nslice",nslice)
+        print("size",size)
+        print("max_slice",max_slice)
         # 通过拼接的方式将所有bag的patch数量统一为最大量
         pad_imgs = []
         for i in range(size):
@@ -117,7 +123,7 @@ class BagDataCollate():
                 constant_values=0
             )
             pad_imgs.append(pad_img)
-
+        print("point--------point")
         # 将一个batch里面的bag根据patch的数量重新排序,使得更加的均衡
         nslice = np.array(nslice)
         order = balance_split(nslice)
@@ -127,9 +133,67 @@ class BagDataCollate():
         pad_imgs = np.array(pad_imgs)[order]
         blabel = np.array(blabel)[order]
         nslice = nslice[order]
-        print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
+        #print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
         # 返回数据
+        #TODO 返回的得是The type of `tensor input_data` should be one of ['Tensor', 'float', 'int'], but got ndarray.
         return np.array(bsid), np.array(pad_imgs), np.array(blabel), np.array(nslice)
+        #return np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs)
+# 均衡操作
+def find_i_j_v(seq):
+    '''isOk[i][j][v]: find j numbers from front i sum to v
+    for seq, index starts from 0
+    for isOk mark, index starts from 1
+    '''
+    n = len(seq)
+    tot = np.sum(seq)
+
+    isOk = np.zeros((n + 1, n + 1, tot + 1), dtype=int)
+    isOk[:, 0, 0] = 1
+
+    for i in range(1, n + 1):
+        jmax = min(i, n // 2)
+        for j in range(1, jmax + 1):
+            for v in range(1, tot // 2 + 1):
+                if isOk[i - 1][j][v]:
+                    isOk[i][j][v] = 1
+
+            for v in range(1, tot // 2 + 1):
+                if v >= seq[i - 1]:
+                    if isOk[i - 1][j - 1][v - seq[i - 1]]:
+                        isOk[i][j][v] = 1
+    return isOk
+
+
+def balance_split(seq):
+    '''split seq to 2 sub list with equal length, sum nearly equal '''
+    n = len(seq)
+    tot = np.sum(seq)
+    res = find_i_j_v(seq)
+
+    i = n
+    j = n // 2
+    v = tot // 2
+
+    sel_idx = []
+    sel_val = []
+
+    while not res[i][j][v] and v > 0:
+        v = v - 1
+
+    while len(sel_idx) < n // 2 and i >= 0:
+        if res[i][j][v] and res[i - 1][j - 1][v - seq[i - 1]]:
+            sel_idx.append(i - 1)
+            sel_val.append(seq[i - 1])
+            j = j - 1
+            v = v - seq[i - 1]
+            i = i - 1
+        else:
+            i = i - 1
+
+    left = sel_idx
+    right = [x for x in list(range(n)) if x not in left]
+    return np.array(left + right)
+
 
 class HPADataset:
     def __init__(self, data_dir, mode, batch_size, bag_size=20, classes=10):
@@ -254,6 +318,7 @@ class HPADataset:
 
     def __getitem__(self, index):
         if self.mode == "pretrain":
+            print("get item: pretrain")
             imgs_basic1 = []
             imgs_basic2 = []
             imgs_aux = []
@@ -281,28 +346,38 @@ class HPADataset:
             return self.collate_pretrain(batch)
 
         else:
-            imgs = []
-            anns = []
-            sids = []
+            print("get item: not pretrain")
+            imgs_tuple=[]
+            anns_tuple=[]
+            sids_tuple=[]
+            
             for idx in range(index*self.batch_size, (index+1)*self.batch_size):
+                imgs = []
+
                 sid = self.sids[idx]
+                print("sid:",sid)
                 sid_imgs = self.db[sid]['img']
+                print("sid imgs:",sid_imgs)
                 ann = self.get_sid_label(sid)
-                anns.append(ann)
-                sids.append(sid)
+                print("ann:",ann)
+                
                 for imgpth in sid_imgs:
                     img = Image.open(imgpth).convert('RGB')
                     img = np.asarray(img)
                     img = self.transform(img)
                     imgs.append(img)
-            print("imgs",imgs)
-            print("sids",sids)
-            print("anns",anns)
-
+                
+                imgs = np.stack(imgs)
+                imgs_tuple.append(imgs)
+                anns_tuple.append(ann)
+                sids_tuple.append(sid)
+                
+            # print("imgs",imgs)
+            # print("anns",anns)
+            print(imgs_tuple,sids_tuple,anns_tuple)
             # imgs = np.stack(imgs).astype(np.float)
             # anns = np.stack(anns).astype(np.int32)
-            
-            batch = (sids, imgs, anns)
+            batch = (tuple(sids_tuple), tuple(imgs_tuple), tuple(anns_tuple))
             return self.collate(batch)
 
 
@@ -551,7 +626,6 @@ if __name__ == "__main__":
         # TEST_DATA_DIR = '/home/tuyanlun/code/ms_r0.5/project/cifar-10-batches-bin/test'
         DATA_DIR = '../hpa_dataset/hpa'
 
-    hpa_pretrain_dataset = makeup_pretrain_dataset(data_dir=DATA_DIR,batch_size=64, bag_size=1, epoch=100)  
     # cifar10_train_dataset = get_train_dataset(TRAIN_DATA_DIR, 128, 200)
     # get_train_test_dataset(TRAIN_DATA_DIR, TEST_DATA_DIR, 128, 1)
 
@@ -559,22 +633,22 @@ if __name__ == "__main__":
     #     print(data.keys())
     #     print(data)
     #     break
-
-    ds = hpa_pretrain_dataset.create_dict_iterator()
-    data=ds.get_next()
-    print("pretrain data",data)
-    hpa_train_dataset = makeup_dataset(data_dir=DATA_DIR,mode='train',batch_size=64,bag_size=1,epoch=20)
-    hpa_test_dataset = makeup_dataset(data_dir=DATA_DIR,mode='test',batch_size=3,bag_size=20,epoch=20)
-    hpa_val_dataset = makeup_dataset(data_dir=DATA_DIR,mode='val',batch_size=3,bag_size=20,epoch=20)
-    ds = hpa_train_dataset.create_dict_iterator()
-    data=ds.get_next()
-    print("train data",data)
+    # hpa_pretrain_dataset = makeup_pretrain_dataset(data_dir=DATA_DIR,batch_size=64, bag_size=1, epoch=100)  
+    # ds = hpa_pretrain_dataset.create_dict_iterator()
+    # data=ds.get_next()
+    # print("pretrain data",data)
+    # hpa_train_dataset = makeup_dataset(data_dir=DATA_DIR,mode='train',batch_size=64,bag_size=1,epoch=20)
+    # ds = hpa_train_dataset.create_dict_iterator()
+    # data=ds.get_next()
+    # print("train data",data)
+    hpa_val_dataset = makeup_dataset(data_dir=DATA_DIR,mode='test',batch_size=3,bag_size=20,epoch=20)
     ds = hpa_val_dataset.create_dict_iterator()
     data=ds.get_next()
     print("val data",data)
-    ds = hpa_test_dataset.create_dict_iterator()
-    data=ds.get_next()
-    print("test data",data)
+    # hpa_test_dataset = makeup_dataset(data_dir=DATA_DIR,mode='val',batch_size=3,bag_size=20,epoch=20)
+    # ds = hpa_test_dataset.create_dict_iterator()
+    # data=ds.get_next()
+    # print("test data",data)
 
     # print(TRAIN_DATA_DIR)
     # cifar10_train_dataset = get_train_dataset(TRAIN_DATA_DIR, 128, 200)
