@@ -27,9 +27,9 @@ class WithLossCell(nn.Cell):
         self._loss_fn = loss_fn
 
     def construct(self, data1, data2, data3, label):
-        data = self.concat(data1, data2, data3)
+        data = self.concat((data1, data2, data3))
         feature1, feature2, feature3 = self._backbone(data)
-        return self._loss_fn(feature3, feature2, feature1, label)
+        return self._loss_fn(feature1, feature2, feature3, label)
 
     @property
     def backbone_network(self):
@@ -63,8 +63,7 @@ class TrainOneStepCell(nn.Cell):
         self.net_with_loss = net_with_loss
         self.weights = ParameterTuple(net_with_loss.trainable_params())
         self.optimizer = optimizer
-        self.grad = C.GradOperation('grad',
-                                    get_by_list=True,
+        self.grad = C.GradOperation(get_by_list=True,
                                     sens_param=False)
         # self.sens = Tensor((np.ones((1,)) * sens).astype(np.float32))
         self.reduce_flag = reduce_flag

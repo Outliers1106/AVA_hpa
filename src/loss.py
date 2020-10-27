@@ -29,7 +29,7 @@ class LossNet(nn.Cell):
         input = self.sum_keep_dim(input, 1)
         return input
 
-    def construct(self, z_aux, y, x, label):
+    def construct(self, x, y, z_aux, label):
         batch_size = self.shape(x)[0]
         embed_size = self.shape(x)[1]
 

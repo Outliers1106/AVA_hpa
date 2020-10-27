@@ -25,7 +25,7 @@ def get_pretrain_config():
         "log_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix,
         "checkpoint_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix + "/checkpoint" + time_prefix,
         "save_checkpoint_epochs": 1,
-        "keep_checkpoint_max": 5,
+        "keep_checkpoint_max": 2,
 
         # dataset
         "dataset": "hpa",
@@ -33,7 +33,7 @@ def get_pretrain_config():
         "bag_size": 1,
 
         # optimizer
-        "base_lr": 0.03,
+        "base_lr": 0.003,
         "type": "SGD",
         "momentum": 0.9,
         "weight_decay": 5e-4,
@@ -41,7 +41,7 @@ def get_pretrain_config():
         "sigma":0.1,
 
         # trainer
-        "batch_size": 128,
+        "batch_size": 32,
         "epochs": 100,
         "lr_schedule": "cosine_lr",
         "lr_mode": "epoch",

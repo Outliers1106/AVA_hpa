@@ -45,7 +45,7 @@ parser = argparse.ArgumentParser(description="AVA pretraining")
 #parser.add_argument("--do_train", type=bool, default=True, help="Do train or not, default is true.")
 #parser.add_argument("--do_eval", type=bool, default=False, help="Do eval or not, default is false.")
 #parser.add_argument("--pre_trained", type=str, default="", help="Pretrain file path.")
-parser.add_argument("--device_id", type=int, default=0, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=4, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 #parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
@@ -118,7 +118,9 @@ if __name__ == '__main__':
     # epoch_for_dataset = config.epochs if args_opt.mindspore_version == 0.5 else 1
     epoch_for_dataset = config.epochs
 
-    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size,epoch=config.epochs)
+    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size)
+    # dataset.__loop_size__ = 1
+    
     # train_dataset = get_train_dataset(train_data_dir=train_data_dir, batchsize=config.batch_size,
     #                                   epoch=epoch_for_dataset, device_id=device_id, device_num=device_num)
 
@@ -162,7 +164,7 @@ if __name__ == '__main__':
         lr = Tensor(cosine_lr(
             init_lr=config.base_lr,
             total_epochs=config.epochs,
-            steps_per_epoch=train_dataset_batch_num,
+            steps_per_epoch=dataset_batch_num,
             mode=config.lr_mode
         ), mstype.float32)
     else:
@@ -170,7 +172,7 @@ if __name__ == '__main__':
             init_lr=config.base_lr,
             total_epochs=config.epochs,
             epoch_stage=config.epoch_stage,
-            steps_per_epoch=train_dataset_batch_num,
+            steps_per_epoch=dataset_batch_num,
             mode=config.lr_mode
         ), mstype.float32)
 
@@ -185,12 +187,12 @@ if __name__ == '__main__':
 
     # eval_network = FeatureCollectCell(resnet)
 
-    loss_cb = LossCallBack_imagenet(data_size=train_dataset_batch_num,logger=logger)
+    loss_cb = LossCallBack(data_size=dataset_batch_num,logger=logger)
     
     cb = [loss_cb]
 
     if config.save_checkpoint:
-        ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * train_dataset_batch_num,
+        ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * dataset_batch_num,
                                       keep_checkpoint_max=config.keep_checkpoint_max)
         # if args_opt.mindspore_version == 0.5:
         #     ckpoint_cb = ModelCheckpoint_0_5(prefix='AVA',
@@ -217,17 +219,18 @@ if __name__ == '__main__':
     logger.info("training begins...")
     print("training begins...")
 
-    try:
-        model.train(config.epochs, train_dataset, callbacks=cb, dataset_sink_mode=True)
-    except Exception as e:
-        if device_num>1:
-            obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
-            obs_save_path=os.path.join(obs_save_path,str(device_id))
-            mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-                                   dst_url= obs_save_path)
-        else:
-            mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-                               dst_url=os.path.join(config.moxing_model_save_path, config.prefix))
+    model.train(config.epochs, dataset, callbacks=cb, dataset_sink_mode=True)
+    # try:
+    #     
+    # except Exception as e:
+    #     if device_num>1:
+    #         obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
+    #         obs_save_path=os.path.join(obs_save_path,str(device_id))
+    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
+    #                                dst_url= obs_save_path)
+    #     else:
+    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
+    #                            dst_url=os.path.join(config.moxing_model_save_path, config.prefix))
 
     # for epoch_idx in range(1, config.epochs + 1):
     #     # ckpoint_cb.set_epoch(epoch_idx)
@@ -244,14 +247,14 @@ if __name__ == '__main__':
     #                 "training per step cost {:.2f} s, total_cost {:.2f} s".format(
     #         epoch_idx, loss, time_cost, time_cost * train_dataset_batch_num))
 
-    if args_opt.use_moxing:
-        print("download file to obs...")
-        if device_num>1:
-            obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
-            obs_save_path=os.path.join(obs_save_path,str(device_id))
-            mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-                                   dst_url= obs_save_path)
+    # if args_opt.use_moxing:
+    #     print("download file to obs...")
+    #     if device_num>1:
+    #         obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
+    #         obs_save_path=os.path.join(obs_save_path,str(device_id))
+    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
+    #                                dst_url= obs_save_path)
 
-        else:
-            mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-                               dst_url=os.path.join(config.moxing_model_save_path, config.prefix))
+    #     else:
+    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
+    #                            dst_url=os.path.join(config.moxing_model_save_path, config.prefix))

@@ -89,8 +89,8 @@ class BagDataCollatePretrain():
 
     def __call__(self, batch):
         imgs_basic1, imgs_basic2, imgs_aux, anns = batch
-        print("pretrain shape:",imgs_basic1.shape,imgs_basic2.shape,imgs_aux.shape, anns.shape)
-        return imgs_basic1, imgs_basic2, imgs_aux, anns
+        #print("pretrain shape:",imgs_basic1.shape,imgs_basic2.shape,imgs_aux.shape, anns.shape)
+        return imgs_basic1.astype(np.float32), imgs_basic2.astype(np.float32), imgs_aux.astype(np.float32), anns.astype(np.int32)
 
 class BagDataCollate():
 
@@ -110,9 +110,9 @@ class BagDataCollate():
             cur = cur + nslice[s]
         
         if self.mode == "train":
-            return allimgs, alllabels
+            return allimgs.astype(np.float32), alllabels
         else:
-            return allimgs, label
+            return allimgs.astype(np.float32), label
 
         
 
@@ -226,6 +226,8 @@ class HPADataset:
         self.bag_size = bag_size
         self.batch_size = batch_size
         filter_d, self.top_cv = self.filter_top_cv(classes)
+        # print("len(filter_d:{}".format(len(filter_d)))
+        # print("self.top_Cv:{}".format(self.top_cv))
         sids = np.array(list(sorted(filter_d.keys())))
         train_sids, val_sids, test_sids = split_train_val_test(sids)
 
@@ -358,9 +360,9 @@ class HPADataset:
                     imgs_aux.append(img_aux)
                     anns.append(ann)
 
-            imgs_basic1 = np.stack(imgs_basic1).astype(np.float)
-            imgs_basic2 = np.stack(imgs_basic2).astype(np.float)
-            imgs_aux = np.stack(imgs_aux).astype(np.float)
+            imgs_basic1 = np.stack(imgs_basic1).astype(np.float32)
+            imgs_basic2 = np.stack(imgs_basic2).astype(np.float32)
+            imgs_aux = np.stack(imgs_aux).astype(np.float32)
             anns = np.stack(anns).astype(np.int32)
             batch = (imgs_basic1, imgs_basic2, imgs_aux, anns)
             return self.collate_pretrain(batch)
@@ -397,7 +399,7 @@ class HPADataset:
 
 
 
-def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch):
+def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1):
 
     pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size)
     ds = GeneratorDataset(pretrain_dataset, ['img_basic1','img_basic2','img_aux','label'])
@@ -406,7 +408,7 @@ def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch):
 
     return ds
 
-def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch):
+def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1):
 
     dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size)
     ds = GeneratorDataset(dataset, ['imgs','labels'])

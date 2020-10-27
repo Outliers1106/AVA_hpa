@@ -129,7 +129,7 @@ class LossCallBack(Callback):
 
         # cb_params.batch_num means : dataset_size / batch_size
         cur_step_in_epoch = (cb_params.cur_step_num - 1) % cb_params.batch_num + 1
-        # print("cur_step_in_epoch:",cur_step_in_epoch,"step loss:",loss)
+        print("cur_step_in_epoch:",cur_step_in_epoch,"step loss:",loss)
         # if self._per_print_times != 0 and cb_params.cur_step_num % self._per_print_times == 0:
         self.loss_sum += loss
         self.step_cnt += 1
