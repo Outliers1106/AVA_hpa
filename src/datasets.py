@@ -63,7 +63,7 @@ class TransformOnImg:
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
-        self.trsfm = trsfm = Compose([
+        self.trsfm = Compose([
         #self.trsfm = trsfm = transforms.Compose([
             #transforms.Decode(),
             transforms.ToPIL(),
@@ -80,7 +80,7 @@ class TransformOnImg:
             else:
                 img = self.trsfm_basic(img)
         else:
-            img = self.trsfm_basic(img)
+            img = self.trsfm(img)
         return img
 
 class BagDataCollatePretrain():
@@ -90,7 +90,7 @@ class BagDataCollatePretrain():
     def __call__(self, batch):
         imgs_basic1, imgs_basic2, imgs_aux, anns = batch
         #print("pretrain shape:",imgs_basic1.shape,imgs_basic2.shape,imgs_aux.shape, anns.shape)
-        return imgs_basic1.astype(np.float32), imgs_basic2.astype(np.float32), imgs_aux.astype(np.float32), anns.astype(np.int32)
+        return imgs_basic1, imgs_basic2, imgs_aux, anns
 
 class BagDataCollate():
 
