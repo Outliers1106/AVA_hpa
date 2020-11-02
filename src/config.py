@@ -10,7 +10,7 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-resnet50"
+    prefix = "AVA-hpa-pretrain-resnet50"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -49,58 +49,52 @@ def get_pretrain_config():
     })
     return config
 
-def get_config_linear():
+
+def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-cifar10-linear"
+    prefix = "AVA-hpa-train-resnet50"
     config = ed({
         # base setting
-        "description": "test checkpoint bz1024",
+        "description": "this is the description for currnet config file.",
         "prefix": prefix,
-        "time_prefix": time_prefix,
-        "net_work": "resnet50",
+        "time_prefix":time_prefix,
+        "network": "resnet50",
         "low_dims": 128,
-        "mid_dims": 2048,
-
+        "use_MLP": False,
+        
+        # load pretrain model
+        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201027-160650", 
+        "load_ckpt_filename":"AVA-1_2185.ckpt",
         # save
         "save_checkpoint": True,
-        "moxing_save_checkpoint_path": prefix + "/checkpoint" + time_prefix,
-        "moxing_summary_path": prefix + "/summary" + time_prefix,
-        "moxing_log_dir": prefix,
-        "log_dir": "/home/tuyanlun/code/ms_r0.6/project/" + prefix,
-        "summary_path": "/home/tuyanlun/code/ms_r0.6/project/" + prefix + "/summary" + time_prefix,
-        "save_checkpoint_path": "/home/tuyanlun/code/ms_r0.6/project/" + prefix + "/checkpoint" + time_prefix,
+        "log_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix,
+        "checkpoint_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix + "/checkpoint" + time_prefix,
         "save_checkpoint_epochs": 1,
-        "keep_checkpoint_max": 5,
-        "moxing_model_save_path": "obs://tuyanlun/model/",
+        "keep_checkpoint_max": 2,
 
-        # load ckpt if "" then dont load else load with the path
-        "load_ckpt_path": "/home/tuyanlun/code/ms_r0.6/project/AVA-cifar10-resnet50/test-resnet50-1000/AVA-994_0.9191_391.ckpt",
-        "load_ckpt_path_moxing":"obs://tuyanlun/model/checkpoint-20200807-161317",
-        "load_ckpt_filename":"AVA-994_0.9191_391.ckpt",
         # dataset
-        "num_classes":10,
-        "dataset": "cifar10",
-        "moxing_train_data_dir": "cifar-10-batches-bin/train",
-        "train_data_dir": "/home/tuyanlun/code/ms_r0.5/project/cifar-10-batches-bin/train",
-        "moxing_test_data_dir": "cifar-10-batches-bin/test",
-        "test_data_dir": "/home/tuyanlun/code/ms_r0.5/project/cifar-10-batches-bin/test",
+        "dataset": "hpa",
+        "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
+        "bag_size_for_train": 1,
+        "bag_size_for_eval": 20,
 
         # optimizer
-        "base_lr": 0.01,
+        "base_lr": 0.0001,
         "type": "Adam",
         "beta1": 0.5,
         "beta2": 0.999,
         "weight_decay": 0,
         "loss_scale": 1,
-
+        
         # trainer
-        "batch_size": 128,
-        "epochs": 50,
-        "epoch_stage": [30, 20],
+        "batch_size": 3,
+        "epochs": 20,
         "lr_schedule": "cosine_lr",
-        "lr_mode": "epoch"
+        "lr_mode": "epoch",
+        "warmup_epoch": 0,
     })
     return config
+
 
 def save_config(paths, dict):
     if not isinstance(paths, list):

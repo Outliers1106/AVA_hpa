@@ -45,7 +45,7 @@ parser = argparse.ArgumentParser(description="AVA pretraining")
 #parser.add_argument("--do_train", type=bool, default=True, help="Do train or not, default is true.")
 #parser.add_argument("--do_eval", type=bool, default=False, help="Do eval or not, default is false.")
 #parser.add_argument("--pre_trained", type=str, default="", help="Pretrain file path.")
-parser.add_argument("--device_id", type=int, default=4, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=0, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 #parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size)
     # dataset.__loop_size__ = 1
-    
+
     # train_dataset = get_train_dataset(train_data_dir=train_data_dir, batchsize=config.batch_size,
     #                                   epoch=epoch_for_dataset, device_id=device_id, device_num=device_num)
 
