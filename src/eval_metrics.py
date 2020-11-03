@@ -1,6 +1,6 @@
 from sklearn import metrics
 import numpy as np
-import torch
+#import torch
 
 epsilon = 1e-8
 
@@ -71,7 +71,8 @@ def write_metrics(pth, gt, predict, score=None):
 
 def threshold_tensor_batch(predict, base=0.5, device=None):
     '''make sure at least one label for batch'''
-    p_max = torch.max(predict, dim=1)[0]
+    #p_max = torch.max(predict, dim=1)[0]
+    p_max = np.max(predict, dim=1)[0]
     pivot = torch.FloatTensor([base]).expand_as(p_max).to(device)
     threshold = torch.min(p_max, pivot)
     pd_threshold = torch.ge(predict, threshold.unsqueeze(dim=1))

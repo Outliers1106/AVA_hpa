@@ -9,7 +9,35 @@ from mindspore.ops import operations as P
 from mindspore import ParameterTuple
 from mindspore.train.callback import Callback
 from mindspore.nn.wrap.grad_reducer import DistributedGradReducer
-import eval_metrics
+import src.eval_metrics as eval_metrics
+
+class EvalCallBack(Callback):
+    def __init__(self, model, eval_dataset, eval_per_epoch, epoch_per_eval, logger):
+        self.model = model
+        self.eval_dataset = eval_dataset
+        self.eval_per_epoch = eval_per_epoch
+        self.epoch_per_eval = epoch_per_eval
+
+    def epoch_end(self, run_context):
+        cb_param = run_context.original_args()
+        cur_epoch = cb_param.cur_epoch_num
+        if cur_epoch % self.eval_per_epoch == 0:
+            start = time.time()
+            output = self.model.eval(self.eval_dataset, dataset_sink_mode=True)
+            val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
+            end = time.time()
+            logger.info("the {} epoch's Eval result: "
+                    "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
+                    "eval cost {:.2f} s".format(
+            epoch_idx, val_loss, lab_f1_macro, lab_f1_micro, lab_auc, end-start))
+
+            self.epoch_per_eval["epoch"].append(cur_epoch)
+            self.epoch_per_eval["f1_macro"].append(lab_f1_macro)
+            self.epoch_per_eval["f1_micro"].append(lab_f1_micro)
+            self.epoch_per_eval["auc"].append(lab_auc)
+            self.epoch_per_eval["val_loss"].append(val_loss)
+
+
 
 class EvalCell(nn.Cell):
 
@@ -46,10 +74,9 @@ class EvalCell(nn.Cell):
     
 class EvalMetric(nn.Metric):
 
-    def __init__(self, batch_size):
+    def __init__(self):
         super(EvalMetric, self).__init__()
         self.clear()
-        self.batch_size = batch_size
 
     
     def clear(self):
@@ -73,6 +100,3 @@ class EvalMetric(nn.Metric):
         loss = self.total_loss / self.cnt
         lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.torch_metrics(np_label, np_pd, score=np_score)
         return loss, lab_f1_macro, lab_f1_micro, lab_auc
-
-
-    

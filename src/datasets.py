@@ -110,9 +110,9 @@ class BagDataCollate():
             cur = cur + nslice[s]
         
         if self.mode == "train":
-            return allimgs.astype(np.float32), alllabels
+            return allimgs.astype(np.float32), alllabels.astype(np.float32)
         else:
-            return allimgs.astype(np.float32), label
+            return allimgs.astype(np.float32), label.astype(np.float32)
 
         
 

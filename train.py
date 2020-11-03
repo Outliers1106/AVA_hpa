@@ -13,22 +13,25 @@ from mindspore.train.callback import ModelCheckpoint
 from mindspore.train import Model
 from mindspore.context import ParallelMode
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
-from mindspore.nn import SGD, BCELoss, Adam
+from mindspore.nn import SGD, Adam
+
 #from optimizer import SGD_ as SGD
 import mindspore.dataset.engine as de
 #from mindspore.train.callback import SummaryCollector
 
-from src.config import get_pretrain_config, save_config, get_logger
+from src.config import get_train_config, save_config, get_logger
 # from imagenet_dataset import get_train_dataset, get_test_dataset, get_train_test_dataset
 from src.datasets import makeup_pretrain_dataset, makeup_dataset
 # from config import get_config, save_config, get_logger
 # from datasets import get_train_dataset, get_test_dataset, get_train_test_dataset
 
 from src.resnet import resnet18, resnet50, resnet101
-from src.network_define_pretrain import WithLossCell, TrainOneStepCell
+from src.network_define_train import WithLossCell, TrainOneStepCell
+from src.network_define_eval import EvalCell,EvalMetric,EvalCallBack
 from src.callbacks import LossCallBack
 from src.loss import LossNet
 from src.lr_schedule import step_cosine_lr, cosine_lr
+from src.loss import BCELoss
 #from knn_eval import KnnEval, FeatureCollectCell
 
 random.seed(123)
@@ -36,7 +39,7 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=0, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=2, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 #parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
@@ -49,7 +52,7 @@ args_opt = parser.parse_args()
 
 
 if __name__ == '__main__':
-    config = get_pretrain_config()
+    config = get_train_config()
 
     checkpoint_dir = config.checkpoint_dir
     data_dir = config.data_dir
@@ -136,7 +139,7 @@ if __name__ == '__main__':
     else:
         raise ("Unsupported net work!")
     
-    load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename, net=resnet) 
+    load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename), net=resnet)
     # logger.info(resnet)
 
     loss = BCELoss(reduction='mean')
@@ -147,7 +150,7 @@ if __name__ == '__main__':
         lr = Tensor(cosine_lr(
             init_lr=config.base_lr,
             total_epochs=config.epochs,
-            steps_per_epoch=dataset_batch_num,
+            steps_per_epoch=train_dataset_batch_num,
             mode=config.lr_mode
         ), mstype.float32)
     else:
@@ -155,7 +158,7 @@ if __name__ == '__main__':
             init_lr=config.base_lr,
             total_epochs=config.epochs,
             epoch_stage=config.epoch_stage,
-            steps_per_epoch=dataset_batch_num,
+            steps_per_epoch=train_dataset_batch_num,
             mode=config.lr_mode
         ), mstype.float32)
     
@@ -172,14 +175,14 @@ if __name__ == '__main__':
     else:
         net = TrainOneStepCell(net_with_loss, opt)
 
-    # eval_network = FeatureCollectCell(resnet)
+    eval_network = EvalCell(resnet, loss)
 
-    loss_cb = LossCallBack(data_size=dataset_batch_num,logger=logger)
+    loss_cb = LossCallBack(data_size=train_dataset_batch_num,logger=logger)
     
     cb = [loss_cb]
 
     if config.save_checkpoint:
-        ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * dataset_batch_num,
+        ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * train_dataset_batch_num,
                                       keep_checkpoint_max=config.keep_checkpoint_max)
         # if args_opt.mindspore_version == 0.5:
         #     ckpoint_cb = ModelCheckpoint_0_5(prefix='AVA',
@@ -192,10 +195,14 @@ if __name__ == '__main__':
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=checkpoint_dir, config=ckptconfig)
         cb += [ckpoint_cb]
 
-    # model = Model(net, metrics={'knn_acc': KnnEval(batch_size=config.batch_size, device_num=1)},
-    #               eval_network=eval_network)
-    model = Model(net)
+    model = Model(net, metrics={'results': EvalMetric()},
+                  eval_network=eval_network)
+    epoch_per_eval = {"epoch":[], "f1_macro":[], "f1_micro":[], "auc":[], "val_loss":[]}
+    # model = Model(net)
     # model.init(train_dataset, eval_dataset)
+    eval_cb = EvalCallBack(model=model, eval_dataset=eval_dataset, eval_per_epoch=config.eval_per_epoch, 
+                epoch_per_eval=epoch_per_eval, logger=logger)
+    cb += [eval_cb]
 
     logger.info("save configs...")
     print("save configs...")
@@ -206,7 +213,8 @@ if __name__ == '__main__':
     logger.info("training begins...")
     print("training begins...")
 
-    model.train(config.epochs, dataset, callbacks=cb, dataset_sink_mode=True)
+    model.train(config.epochs, train_dataset, callbacks=cb,dataset_sink_mode=True)
+    # model.train(config.epochs, dataset, callbacks=cb, dataset_sink_mode=True)
     # try:
     #     
     # except Exception as e:
@@ -222,7 +230,7 @@ if __name__ == '__main__':
     # for epoch_idx in range(1, config.epochs + 1):
     #     # ckpoint_cb.set_epoch(epoch_idx)
     #     model.train(1, train_dataset, callbacks=cb, dataset_sink_mode=True)
-    #     # output = model.eval(eval_dataset)
+        
     #     time_cost = loss_cb.get_per_step_time()
     #     loss = loss_cb.get_loss()
     #     print("the {} epoch's resnet result: "
@@ -233,6 +241,19 @@ if __name__ == '__main__':
     #                 " training loss {},"
     #                 "training per step cost {:.2f} s, total_cost {:.2f} s".format(
     #         epoch_idx, loss, time_cost, time_cost * train_dataset_batch_num))
+
+    #     if epoch_idx % config.eval_pause == 0:
+    #         start = time.time()
+    #         output = model.eval(eval_dataset)
+    #         val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
+
+    #         end = time.time()
+    #         logger.info("the {} epoch's Eval result: "
+    #                 "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
+    #                 "eval cost {:.2f} s".format(
+    #         epoch_idx, val_loss, lab_f1_macro, lab_f1_micro, lab_auc, end-start))
+
+        
 
     # if args_opt.use_moxing:
     #     print("download file to obs...")
