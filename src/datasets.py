@@ -232,13 +232,13 @@ class HPADataset:
         train_sids, val_sids, test_sids = split_train_val_test(sids)
 
         if mode == 'pretrain':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1)
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1) # max_bag_size=1
         elif mode == 'train':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1)
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1) # max_bag_size=1
         elif mode == 'val':
-            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=20)
+            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=20) # max_bag_size=20
         elif mode == 'test':
-            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=20)
+            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=20) # max_bag_size=20
 
         
     def load_data(self, d, sids, max_bag_size):
