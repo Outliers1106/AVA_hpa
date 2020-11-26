@@ -17,21 +17,22 @@ class EvalCallBack(Callback):
         self.eval_dataset = eval_dataset
         self.eval_per_epoch = eval_per_epoch
         self.epoch_per_eval = epoch_per_eval
+        self.logger = logger
 
     def epoch_end(self, run_context):
         cb_param = run_context.original_args()
-        cur_epoch = cb_param.cur_epoch_num
-        if cur_epoch % self.eval_per_epoch == 0:
+        epoch_idx = (cb_param.cur_step_num - 1) // cb_param.batch_num + 1
+        if epoch_idx % self.eval_per_epoch == 0:
             start = time.time()
             output = self.model.eval(self.eval_dataset, dataset_sink_mode=True)
             val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
             end = time.time()
-            logger.info("the {} epoch's Eval result: "
+            self.logger.info("the {} epoch's Eval result: "
                     "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
                     "eval cost {:.2f} s".format(
             epoch_idx, val_loss, lab_f1_macro, lab_f1_micro, lab_auc, end-start))
 
-            self.epoch_per_eval["epoch"].append(cur_epoch)
+            self.epoch_per_eval["epoch"].append(epoch_idx)
             self.epoch_per_eval["f1_macro"].append(lab_f1_macro)
             self.epoch_per_eval["f1_micro"].append(lab_f1_micro)
             self.epoch_per_eval["auc"].append(lab_auc)
@@ -48,7 +49,7 @@ class EvalCell(nn.Cell):
         
 
 
-    def construct(self, data, label):
+    def construct(self, data, label, nslice):
         outputs = self._network(data)
 
         val_predict = []
@@ -64,9 +65,9 @@ class EvalCell(nn.Cell):
 
         
         val_predict = np.array(val_predict)
-        # print("val_predict(torch) : ", np.shape(val_predict))
+        print("val_predict(shape) : ", np.shape(val_predict))
         # 计算loss
-        loss = self.criterion(val_predict, gt)
+        loss = self.criterion(val_predict, label)
 
         return val_predict, loss
 
@@ -94,7 +95,7 @@ class EvalMetric(nn.Metric):
         self.val_pd = eval_metrics.threshold_tensor_batch(val_predict)
         self.np_pd.append(val_pd)
         self.np_score.append(val_predict)
-        self.np_label.append(gt)
+        self.np_label.append(label)
 
     def eval(self):
         loss = self.total_loss / self.cnt

@@ -10,13 +10,13 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain-resnet50"
+    prefix = "AVA-hpa-pretrain-resnet18"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
         "prefix": prefix,
         "time_prefix":time_prefix,
-        "network": "resnet50",
+        "network": "resnet18",
         "low_dims": 128,
         "use_MLP": False,
 
@@ -63,8 +63,8 @@ def get_train_config():
         "use_MLP": False,
         
         # load pretrain model
-        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201027-181404", 
-        "load_ckpt_filename":"AVA-27_2185.ckpt",
+        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201103-123643",
+        "load_ckpt_filename":"AVA-100_2185.ckpt",
         # save
         "save_checkpoint": True,
         "log_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix,

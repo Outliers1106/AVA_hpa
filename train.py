@@ -138,7 +138,8 @@ if __name__ == '__main__':
         resnet = resnet101(low_dims=config.low_dims, pretrain=False)
     else:
         raise ("Unsupported net work!")
-    
+
+    print("load checkpoint from {},{}".format(config.load_ckpt_path,config.load_ckpt_filename))
     load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename), net=resnet)
     # logger.info(resnet)
 

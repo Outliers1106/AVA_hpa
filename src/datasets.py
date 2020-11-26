@@ -111,8 +111,8 @@ class BagDataCollate():
         
         if self.mode == "train":
             return allimgs.astype(np.float32), alllabels.astype(np.float32)
-        else:
-            return allimgs.astype(np.float32), label.astype(np.float32)
+        else: # need `nslice` to recover bag when eval
+            return allimgs.astype(np.float32), label.astype(np.float32), nslice.astype(np.float32)
 
         
 

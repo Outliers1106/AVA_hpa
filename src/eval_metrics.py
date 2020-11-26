@@ -69,7 +69,7 @@ def write_metrics(pth, gt, predict, score=None):
         f.write('specificity:%.4f\n' % lab_specificity)
 
 
-def threshold_tensor_batch(predict, base=0.5, device=None):
+def threshold_tensor_batch(predict, base=0.5):
     '''make sure at least one label for batch'''
     #p_max = torch.max(predict, dim=1)[0]
     p_max = np.max(predict, dim=1)[0]
