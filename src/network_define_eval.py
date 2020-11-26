@@ -69,7 +69,7 @@ class EvalCell(nn.Cell):
         # 计算loss
         loss = self.criterion(val_predict, label)
 
-        return val_predict, loss
+        return val_predict, loss, label
 
 #TODO 把torch改成numpy实现
     
@@ -88,16 +88,16 @@ class EvalMetric(nn.Metric):
         self.cnt = 0
 
     def update(self, *inputs):
-        val_predict, loss = inputs
+        val_predict, loss, label = inputs
         self.cnt = self.cnt+1
         self.total_loss += loss
         # 保存中间结果   
-        self.val_pd = eval_metrics.threshold_tensor_batch(val_predict)
+        val_pd = eval_metrics.threshold_tensor_batch(val_predict)
         self.np_pd.append(val_pd)
         self.np_score.append(val_predict)
         self.np_label.append(label)
 
     def eval(self):
         loss = self.total_loss / self.cnt
-        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.torch_metrics(np_label, np_pd, score=np_score)
+        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.torch_metrics(self.np_label, self.np_pd, score=self.np_score)
         return loss, lab_f1_macro, lab_f1_micro, lab_auc
