@@ -20,36 +20,15 @@ def sklearn_f1_micro(gt, predict):
     return metrics.f1_score(gt, predict, average='micro')
 
 
-def torch_metrics(gt, predict, mode="val", score=None):
+def np_metrics(gt, predict, score=None):
 
     sk_auc_macro = sklearn_auc_macro(gt, score)
     sk_f1_macro = sklearn_f1_macro(gt, predict)
     sk_f1_micro = sklearn_f1_micro(gt, predict)
 
-    lab_f1_macro = label_f1_macro(gt, predict)
-    lab_f1_micro = label_f1_micro(gt, predict)
     lab_sensitivity = label_sensitivity(gt, predict)
     lab_specificity = label_specificity(gt, predict)
 
-    # writer.add_scalar("%s auc macro sk" % mode, sk_auc_macro, step)
-    # writer.add_scalar("%s label f1 macro sk" % mode, sk_f1_macro, step)
-    # writer.add_scalar("%s label f1 micro sk" % mode, sk_f1_micro, step)
-    #
-    # writer.add_scalar("%s label f1 macro" % mode, lab_f1_macro, step)
-    # writer.add_scalar("%s label f1 micro" % mode, lab_f1_micro, step)
-    # writer.add_scalar("%s label sensitivity" % mode, lab_sensitivity, step)
-    # writer.add_scalar("%s label specificity" % mode, lab_specificity, step)
-
-    sl_acc = single_label_accuracy(gt, predict)
-    sl_precision = single_label_precision(gt, predict)
-    sl_recall = single_label_recall(gt, predict)
-    # for i in range(gt.shape[-1]):
-    #     writer.add_scalar("%s sl_%d_acc" % (mode, i),
-    #                       sl_acc[i], step)
-    #     writer.add_scalar("%s sl_%d_precision" % (mode, i),
-    #                       sl_precision[i], step)
-    #     writer.add_scalar("%s sl_%d_recall" % (mode, i),
-    #                       sl_recall[i], step)
     return sk_f1_macro, sk_f1_micro, sk_auc_macro
 
 

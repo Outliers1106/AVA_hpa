@@ -24,8 +24,10 @@ class EvalCallBack(Callback):
         epoch_idx = (cb_param.cur_step_num - 1) // cb_param.batch_num + 1
         if epoch_idx % self.eval_per_epoch == 0:
             start = time.time()
-            output = self.model.eval(self.eval_dataset, dataset_sink_mode=True)
-            val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
+            output = self.model.eval(self.eval_dataset, dataset_sink_mode=False)
+            print(output)
+            #val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
+            val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results_return']
             end = time.time()
             self.logger.info("the {} epoch's Eval result: "
                     "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
@@ -54,33 +56,45 @@ class EvalCell(nn.Cell):
 
         val_predict = []
         cur = 0
-        numpy_predict = outputs
-        for i in range(len(label)):
+        # numpy_predict = outputs.asnumpy()
+        # label = label.asnumpy()
+        #nslice = nslice.asnumpy()
+        print("output:",outputs)
+        #print(outputs.dtype)
+        print("label",label)
+        #print(label.dtype)
+        print("slices",nslice)
+        #print(nslice.dtype)
+        #for i in range(len(label)):
             # 取均值
+            #print(i)
             # print("sample_predict: ", np.shape(numpy_predict[cur : cur + nslice[i]]))
-            sample_bag_predict = np.mean(numpy_predict[cur: cur + nslice[i]], axis=0)
+            # sample_bag_predict = np.mean(numpy_predict[cur: cur + nslice[i]], axis=0)
             # print("sample_bag_predict: ", np.shape(sample_bag_predict))
-            cur = cur + nslice[i]
-            val_predict.append(sample_bag_predict)
+            # cur = cur + nslice[i]
+            # val_predict.append(sample_bag_predict)
 
         
-        val_predict = np.array(val_predict)
-        print("val_predict(shape) : ", np.shape(val_predict))
-        # 计算loss
-        loss = self.criterion(val_predict, label)
+        # val_predict = np.array(val_predict)
+        # print("val_predict(shape) : ", np.shape(val_predict))
+        # # 计算loss
+        # loss = self.criterion(val_predict, label)
 
-        return val_predict, loss, label
+        #return val_predict, loss, label
+        return outputs, label, nslice
 
 #TODO 把torch改成numpy实现
-    
+#from mindspore.nn.metrics import Metric
 class EvalMetric(nn.Metric):
-
+#class EvalMetric(Metric):
     def __init__(self):
         super(EvalMetric, self).__init__()
+        print("evalmetric init")
         self.clear()
 
     
     def clear(self):
+        print("clear")
         self.total_loss = 0.0
         self.np_label = []
         self.np_pd = []
@@ -88,9 +102,24 @@ class EvalMetric(nn.Metric):
         self.cnt = 0
 
     def update(self, *inputs):
-        val_predict, loss, label = inputs
+        print("update")
+        # val_predict, loss, label = inputs
+        val_predict = []
+        cur = 0
+        numpy_predict = inputs[0].asnumpy()
+        label = inputs[1].asnumpy()
+        nslice = inputs[2].asnumpy()
+        for i in range(len(label)):
+            #取均值
+            #print("sample_predict: ", np.shape(numpy_predict[int(cur) : int(cur + nslice[i])]))
+            sample_bag_predict = np.mean(numpy_predict[int(cur): int(cur)+ nslice[i]], axis=0)
+            # print("sample_bag_predict: ", np.shape(sample_bag_predict))
+            cur = cur + nslice[i]
+            val_predict.append(sample_bag_predict)
+
+
         self.cnt = self.cnt+1
-        self.total_loss += loss
+        self.total_loss += 0
         # 保存中间结果   
         val_pd = eval_metrics.threshold_tensor_batch(val_predict)
         self.np_pd.append(val_pd)
@@ -99,5 +128,5 @@ class EvalMetric(nn.Metric):
 
     def eval(self):
         loss = self.total_loss / self.cnt
-        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.torch_metrics(self.np_label, self.np_pd, score=self.np_score)
+        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.np_metrics(self.np_label, self.np_pd, score=self.np_score)
         return loss, lab_f1_macro, lab_f1_micro, lab_auc

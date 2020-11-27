@@ -110,9 +110,14 @@ class BagDataCollate():
             cur = cur + nslice[s]
         
         if self.mode == "train":
-            return allimgs.astype(np.float32), alllabels.astype(np.float32)
+            #print("cur train")
+            #print(allimgs.shape,alllabels.shape,nslice.shape)
+            return allimgs.astype(np.float32), alllabels.astype(np.float32), nslice.astype(np.int32)
+
         else: # need `nslice` to recover bag when eval
-            return allimgs.astype(np.float32), label.astype(np.float32), nslice.astype(np.float32)
+            #print("cur val or test")
+            #print(allimgs.shape, label.shape, nslice.shape)
+            return allimgs.astype(np.float32), label.astype(np.float32), nslice.astype(np.int32)
 
         
 
@@ -153,7 +158,7 @@ class BagDataCollate():
         nslice = nslice[order]
         #print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
         # 返回数据
-        print(np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
+        #print(np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
         #TODO 返回的得是The type of `tensor input_data` should be one of ['Tensor', 'float', 'int'], but got ndarray.
         return self.aggregate(np.array(pad_imgs), np.array(blabel),np.array(nslice))
         # return np.array(pad_imgs), np.array(blabel)
@@ -216,7 +221,7 @@ def balance_split(seq):
 
 
 class HPADataset:
-    def __init__(self, data_dir, mode, batch_size, bag_size=20, classes=10):
+    def __init__(self, data_dir, mode, batch_size, bag_size, classes=10):
         self.collate = BagDataCollate(mode=mode)
         self.collate_pretrain = BagDataCollatePretrain()
         self.nclasses = classes
@@ -232,13 +237,13 @@ class HPADataset:
         train_sids, val_sids, test_sids = split_train_val_test(sids)
 
         if mode == 'pretrain':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1) # max_bag_size=1
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size) # max_bag_size=1
         elif mode == 'train':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=1) # max_bag_size=1
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size) # max_bag_size=1
         elif mode == 'val':
-            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=20) # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size) # max_bag_size=20
         elif mode == 'test':
-            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=20) # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size) # max_bag_size=20
 
         
     def load_data(self, d, sids, max_bag_size):
@@ -404,16 +409,19 @@ def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1):
     pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size)
     ds = GeneratorDataset(pretrain_dataset, ['img_basic1','img_basic2','img_aux','label'])
     #ds = ds.batch(batch_size)
-    ds = ds.repeat(epoch)
+    #ds = ds.repeat(epoch)
 
     return ds
 
 def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1):
 
     dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size)
-    ds = GeneratorDataset(dataset, ['imgs','labels'])
+    if mode=="train":
+        ds = GeneratorDataset(dataset, ['imgs','labels','nslice'])
+    else:
+        ds = GeneratorDataset(dataset, ['imgs', 'labels', 'nslice'])
     #ds = ds.batch(batch_size)
-    ds = ds.repeat(epoch)
+    #ds = ds.repeat(epoch)
 
     return ds
 

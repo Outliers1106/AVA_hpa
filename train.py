@@ -1,4 +1,7 @@
 import os
+
+os.system('export PYTHONPATH=/usr/local/Ascend/opp/op_impl/built-in/ai_core/tbe')
+os.system('source /home/tuyanlun/code/mindspore_r1.0/env.sh')
 import argparse
 import random
 import numpy as np
@@ -50,7 +53,6 @@ parser.add_argument('--run_distribute', type=bool, default=False, help='Run dist
 args_opt = parser.parse_args()
 
 
-
 if __name__ == '__main__':
     config = get_train_config()
 
@@ -98,30 +100,12 @@ if __name__ == '__main__':
 
     print("start create dataset...")
 
-    # epoch_for_dataset = config.epochs if args_opt.mindspore_version == 0.5 else 1
     epoch_for_dataset = config.epochs
-
     
-    train_dataset = makeup_dataset(data_dir=data_dir, mode='train', batch_size=config.batch_size, bag_size=config.bag_size_for_train)
-    eval_dataset = makeup_dataset(data_dir=data_dir, mode='val', batch_size=config.batch_size, bag_size=config.bag_size_for_eval)
-    # dataset.__loop_size__ = 1
-
-    # train_dataset = get_train_dataset(train_data_dir=train_data_dir, batchsize=config.batch_size,
-    #                                   epoch=epoch_for_dataset, device_id=device_id, device_num=device_num)
-
-    # for data in train_dataset.create_dict_iterator():
-    #     print("train data:",data)
-    #     break
-
-    #train_dataset.__loop_size__ = 1
-
-    # eval_dataset contains train dataset and test dataset, which is used for knn eval
-    # eval_dataset = get_train_test_dataset(train_data_dir=train_data_dir, test_data_dir=test_data_dir,
-    #                                       batchsize=100, epoch=epoch_for_dataset)
-
-    # for data in eval_dataset.create_dict_iterator():
-    #     print("eavl data:",data['image'])
-    #     break
+    train_dataset = makeup_dataset(data_dir=data_dir, mode='train', batch_size=config.batch_size_for_train, bag_size=config.bag_size_for_train)
+    eval_dataset = makeup_dataset(data_dir=data_dir, mode='val', batch_size=config.batch_size_for_eval, bag_size=config.bag_size_for_eval)
+    train_dataset.__loop_size__ = 1
+    eval_dataset.__loop_size__ = 1
 
     train_dataset_batch_num = int(train_dataset.get_dataset_size())
     eval_dataset_batch_num = int(eval_dataset.get_dataset_size())
@@ -185,22 +169,14 @@ if __name__ == '__main__':
     if config.save_checkpoint:
         ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * train_dataset_batch_num,
                                       keep_checkpoint_max=config.keep_checkpoint_max)
-        # if args_opt.mindspore_version == 0.5:
-        #     ckpoint_cb = ModelCheckpoint_0_5(prefix='AVA',
-        #                                      directory=checkpoint_dir,
-        #                                      config=ckptconfig)
-        # elif args_opt.mindspore_version == 0.6:
-        #     ckpoint_cb = ModelCheckpoint_0_6(prefix='AVA',
-        #                                      directory=checkpoint_dir,
-        #                                      config=ckptconfig)
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=checkpoint_dir, config=ckptconfig)
         cb += [ckpoint_cb]
 
-    model = Model(net, metrics={'results': EvalMetric()},
+    model = Model(net, metrics={'results_return': EvalMetric()},
                   eval_network=eval_network)
+    #model._init(train_dataset,eval_dataset)
     epoch_per_eval = {"epoch":[], "f1_macro":[], "f1_micro":[], "auc":[], "val_loss":[]}
-    # model = Model(net)
-    # model.init(train_dataset, eval_dataset)
+    
     eval_cb = EvalCallBack(model=model, eval_dataset=eval_dataset, eval_per_epoch=config.eval_per_epoch, 
                 epoch_per_eval=epoch_per_eval, logger=logger)
     cb += [eval_cb]
@@ -214,7 +190,7 @@ if __name__ == '__main__':
     logger.info("training begins...")
     print("training begins...")
 
-    model.train(config.epochs, train_dataset, callbacks=cb,dataset_sink_mode=True)
+    model.train(config.epochs, train_dataset, callbacks=cb,dataset_sink_mode=False)
     # model.train(config.epochs, dataset, callbacks=cb, dataset_sink_mode=True)
     # try:
     #     

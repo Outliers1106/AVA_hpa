@@ -69,7 +69,7 @@ class TrainOneStepCell(nn.Cell):
         if reduce_flag:
             self.grad_reducer = DistributedGradReducer(optimizer.parameters, mean, degree)
 
-    def construct(self, data, label):
+    def construct(self, data, label, nslice):
         weights = self.weights
         loss = self.net_with_loss(data, label)
         grads = self.grad(self.net_with_loss, weights)(data, label)

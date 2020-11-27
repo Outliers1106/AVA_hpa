@@ -87,7 +87,8 @@ def get_train_config():
         "loss_scale": 1,
         
         # trainer
-        "batch_size": 3,
+        "batch_size_for_train": 32,
+        "batch_size_for_eval":3,
         "epochs": 20,
         "eval_per_epoch": 1,
         "lr_schedule": "cosine_lr",
