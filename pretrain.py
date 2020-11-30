@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # epoch_for_dataset = config.epochs if args_opt.mindspore_version == 0.5 else 1
     epoch_for_dataset = config.epochs
 
-    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size)
+    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size, shuffle=True)
     # dataset.__loop_size__ = 1
 
     # train_dataset = get_train_dataset(train_data_dir=train_data_dir, batchsize=config.batch_size,

@@ -59,11 +59,11 @@ class EvalCell(nn.Cell):
         # numpy_predict = outputs.asnumpy()
         # label = label.asnumpy()
         #nslice = nslice.asnumpy()
-        print("output:",outputs)
+        #print("output:",outputs)
         #print(outputs.dtype)
-        print("label",label)
+        #print("label",label)
         #print(label.dtype)
-        print("slices",nslice)
+        #print("slices",nslice)
         #print(nslice.dtype)
         #for i in range(len(label)):
             # 取均值
@@ -128,5 +128,9 @@ class EvalMetric(nn.Metric):
 
     def eval(self):
         loss = self.total_loss / self.cnt
+        self.np_label = np.concatenate(self.np_label)
+        self.np_pd = np.concatenate(self.np_pd)
+        self.np_score = np.concatenate(self.np_score)
+        #print("self.np_label.shape",self.np_label.shape)
         lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.np_metrics(self.np_label, self.np_pd, score=self.np_score)
         return loss, lab_f1_macro, lab_f1_micro, lab_auc

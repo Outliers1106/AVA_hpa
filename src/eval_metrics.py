@@ -21,7 +21,12 @@ def sklearn_f1_micro(gt, predict):
 
 
 def np_metrics(gt, predict, score=None):
-
+    print("gt",gt)
+    print("predict",predict)
+    print("score",score)
+    print("gt.shape",gt.shape)
+    print("predict.shape",predict.shape)
+    print("score.shape",score.shape)
     sk_auc_macro = sklearn_auc_macro(gt, score)
     sk_f1_macro = sklearn_f1_macro(gt, predict)
     sk_f1_micro = sklearn_f1_micro(gt, predict)

@@ -42,7 +42,7 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=2, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=1, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 #parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     epoch_for_dataset = config.epochs
     
-    train_dataset = makeup_dataset(data_dir=data_dir, mode='train', batch_size=config.batch_size_for_train, bag_size=config.bag_size_for_train)
+    train_dataset = makeup_dataset(data_dir=data_dir, mode='train', batch_size=config.batch_size_for_train, bag_size=config.bag_size_for_train, shuffle=True)
     eval_dataset = makeup_dataset(data_dir=data_dir, mode='val', batch_size=config.batch_size_for_eval, bag_size=config.bag_size_for_eval)
     train_dataset.__loop_size__ = 1
     eval_dataset.__loop_size__ = 1
@@ -122,9 +122,11 @@ if __name__ == '__main__':
         resnet = resnet101(low_dims=config.low_dims, pretrain=False)
     else:
         raise ("Unsupported net work!")
-
-    print("load checkpoint from {},{}".format(config.load_ckpt_path,config.load_ckpt_filename))
-    load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename), net=resnet)
+    if config.load_ckpt:
+        print("load checkpoint from {},{}".format(config.load_ckpt_path,config.load_ckpt_filename))
+        load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename), net=resnet)
+    else:
+        print("dont load checkpoint")
     # logger.info(resnet)
 
     loss = BCELoss(reduction='mean')

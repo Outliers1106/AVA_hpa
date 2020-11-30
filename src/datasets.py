@@ -221,7 +221,7 @@ def balance_split(seq):
 
 
 class HPADataset:
-    def __init__(self, data_dir, mode, batch_size, bag_size, classes=10):
+    def __init__(self, data_dir, mode, batch_size, bag_size, classes=10, shuffle=False):
         self.collate = BagDataCollate(mode=mode)
         self.collate_pretrain = BagDataCollatePretrain()
         self.nclasses = classes
@@ -244,7 +244,8 @@ class HPADataset:
             self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size) # max_bag_size=20
         elif mode == 'test':
             self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size) # max_bag_size=20
-
+        if shuffle:
+            np.random.shuffle(self.sids)
         
     def load_data(self, d, sids, max_bag_size):
         '''
@@ -404,18 +405,18 @@ class HPADataset:
 
 
 
-def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1):
+def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1,shuffle=False):
 
-    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size)
+    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size, shuffle=shuffle)
     ds = GeneratorDataset(pretrain_dataset, ['img_basic1','img_basic2','img_aux','label'])
     #ds = ds.batch(batch_size)
     #ds = ds.repeat(epoch)
 
     return ds
 
-def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1):
+def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1,shuffle=False):
 
-    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size)
+    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size, shuffle=shuffle)
     if mode=="train":
         ds = GeneratorDataset(dataset, ['imgs','labels','nslice'])
     else:

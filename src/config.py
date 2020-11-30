@@ -18,7 +18,7 @@ def get_pretrain_config():
         "time_prefix":time_prefix,
         "network": "resnet18",
         "low_dims": 128,
-        "use_MLP": False,
+        "use_MLP": True,
 
         # save
         "save_checkpoint": True,
@@ -52,17 +52,18 @@ def get_pretrain_config():
 
 def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-train-resnet50"
+    prefix = "AVA-hpa-train-resnet18"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
         "prefix": prefix,
         "time_prefix":time_prefix,
-        "network": "resnet50",
+        "network": "resnet18",
         "low_dims": 128,
         "use_MLP": False,
         
         # load pretrain model
+        "load_ckpt": False,
         "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201103-123643",
         "load_ckpt_filename":"AVA-100_2185.ckpt",
         # save
@@ -87,7 +88,7 @@ def get_train_config():
         "loss_scale": 1,
         
         # trainer
-        "batch_size_for_train": 32,
+        "batch_size_for_train": 8,
         "batch_size_for_eval":3,
         "epochs": 20,
         "eval_per_epoch": 1,
