@@ -10,13 +10,13 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain-resnet18"
+    prefix = "AVA-hpa-pretrain-resnet50"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
         "prefix": prefix,
         "time_prefix":time_prefix,
-        "network": "resnet18",
+        "network": "resnet50",
         "low_dims": 128,
         "use_MLP": True,
 
