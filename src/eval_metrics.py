@@ -20,21 +20,24 @@ def sklearn_f1_micro(gt, predict):
     return metrics.f1_score(gt, predict, average='micro')
 
 
-def np_metrics(gt, predict, score=None):
-    print("gt",gt)
-    print("predict",predict)
-    print("score",score)
-    print("gt.shape",gt.shape)
-    print("predict.shape",predict.shape)
-    print("score.shape",score.shape)
-    sk_auc_macro = sklearn_auc_macro(gt, score)
+def np_metrics(gt, predict, score=None, auc_use_micro=False):
+    # print("gt",gt)
+    # print("predict",predict)
+    # print("score",score)
+    # print("gt.shape",gt.shape)
+    # print("predict.shape",predict.shape)
+    # print("score.shape",score.shape)
+    if auc_use_micro:
+        sk_auc = sklearn_auc_micro(gt, score)
+    else:
+        sk_auc = sklearn_auc_macro(gt, score)
     sk_f1_macro = sklearn_f1_macro(gt, predict)
     sk_f1_micro = sklearn_f1_micro(gt, predict)
 
     lab_sensitivity = label_sensitivity(gt, predict)
     lab_specificity = label_specificity(gt, predict)
 
-    return sk_f1_macro, sk_f1_micro, sk_auc_macro
+    return sk_f1_macro, sk_f1_micro, sk_auc
 
 
 def write_metrics(pth, gt, predict, score=None):

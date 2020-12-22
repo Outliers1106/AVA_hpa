@@ -42,14 +42,14 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=2, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=3, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 #parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
 #parser.add_argument("--mindspore_version", type=float, default=0.6, help="Mindspore version default 0.6.")
 #parser.add_argument('--load_ckpt_path', type=str, default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201027-181404/AVA-27_2185.ckpt', help='checkpoint path of pretrain model')
-parser.add_argument('--ckpt_path', type=str, default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18/checkpoint-20201201-003628/AVA-20_8742.ckpt', help='model checkpoint path')
+parser.add_argument('--ckpt_path', type=str, default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18/checkpoint-20201218-225845/AVA-20_8742.ckpt', help='model checkpoint path')
 parser.add_argument("--model_arch",type=str, default="resnet18",help='model architecture')
 parser.add_argument("--data_dir",type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",help='dataset path')
 
@@ -70,8 +70,18 @@ if __name__ == "__main__":
     else:
         raise ("Unsupported net work!")
 
-    load_checkpoint(ckpt_path, net=resnet)
+    param_dict = load_checkpoint(ckpt_path)
+    # param_dict2 = load_checkpoint(ckpt_path, net=resnet)
+    # for key in param_dict:
+    #     l1=np.array(param_dict[key])
+    #     l2=np.array(param_dict2[key])
+    #     res = l1==l2
+    #
+    #     if 0 in res:
+    #         print(key,param_dict[key]==param_dict2[key])
 
+    # print("param_dict:{}".format(param_dict.keys()))
+    load_param_into_net(resnet, param_dict)
     test_dataset = makeup_dataset(data_dir=data_dir, mode='test', batch_size=3, bag_size=20)
     test_dataset.__loop_size__ = 1
 

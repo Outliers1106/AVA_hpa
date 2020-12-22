@@ -52,7 +52,7 @@ def get_pretrain_config():
 
 def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-train-resnet18"
+    prefix = "AVA-hpa-train-resnet18-27"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -64,7 +64,7 @@ def get_train_config():
         
         # load pretrain model
         "load_ckpt": False,
-        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201103-123643",
+        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet50/checkpoint-20201201-000717",
         "load_ckpt_filename":"AVA-100_2185.ckpt",
         # save
         "save_checkpoint": True,
@@ -78,6 +78,7 @@ def get_train_config():
         "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size_for_train": 1,
         "bag_size_for_eval": 20,
+        "classes":27,
 
         # optimizer
         "base_lr": 0.0001,

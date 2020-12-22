@@ -335,7 +335,7 @@ class ResNet(nn.Cell):
             return out
 
 
-def resnet50(low_dims=128, pretrain=True, use_MLP=False):
+def resnet50(low_dims=128, pretrain=True, use_MLP=False, classes=10):
     """
     Get ResNet50 neural network.
 
@@ -355,10 +355,11 @@ def resnet50(low_dims=128, pretrain=True, use_MLP=False):
                   [1, 2, 2, 2],
                   low_dims=low_dims,
                   pretrain=pretrain,
-                  use_MLP=use_MLP)
+                  use_MLP=use_MLP,
+                  nclass=classes)
 
 
-def resnet101(low_dims=128, pretrain=True, use_MLP=False):
+def resnet101(low_dims=128, pretrain=True, use_MLP=False, classes=10):
     """
     Get ResNet101 neural network.
 
@@ -378,10 +379,11 @@ def resnet101(low_dims=128, pretrain=True, use_MLP=False):
                   [1, 2, 2, 2],
                   low_dims=low_dims,
                   pretrain=pretrain,
-                  use_MLP=use_MLP)
+                  use_MLP=use_MLP,
+                  nclass=classes)
 
 
-def resnet18(low_dims=128, pretrain=True, use_MLP=False):
+def resnet18(low_dims=128, pretrain=True, use_MLP=False, classes=10):
     """
         Get ResNet18 neural network.
 
@@ -398,7 +400,8 @@ def resnet18(low_dims=128, pretrain=True, use_MLP=False):
                   [1, 2, 2, 2],
                   low_dims=low_dims,
                   pretrain=pretrain,
-                  use_MLP=use_MLP)
+                  use_MLP=use_MLP,
+                  nclass=classes)
 
 
 if __name__ == "__main__":

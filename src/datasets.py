@@ -8,6 +8,7 @@ import random
 from mindspore.common import dtype as mstype
 import mindspore.dataset.transforms.c_transforms as C
 from src.RandAugment import RandAugment
+
 # from utils.autoaugment import CIFAR10Policy, SVHNPolicy
 # from utils.GaussianBlur import GaussianBlur
 
@@ -426,9 +427,9 @@ def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1,shuffle=Fals
 
     return ds
 
-def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1,shuffle=False):
+def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1,shuffle=False, classes=10):
 
-    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size, shuffle=shuffle)
+    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size, shuffle=shuffle, classes=classes)
     if mode=="train":
         ds = GeneratorDataset(dataset, ['imgs','labels','nslice'])
     else:
