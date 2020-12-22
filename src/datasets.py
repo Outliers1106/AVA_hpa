@@ -63,12 +63,21 @@ class TransformOnImg:
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
+        self.trsfm_train = Compose([
+            # transforms.Decode(),
+            transforms.ToPIL(),
+            transforms.Resize(256),
+            transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
         self.trsfm = Compose([
         #self.trsfm = trsfm = transforms.Compose([
             #transforms.Decode(),
             transforms.ToPIL(),
-            transforms.Resize(256),
-            transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
+            transforms.Resize(224),
+            #transforms.Resize(256),
+            #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
@@ -80,7 +89,10 @@ class TransformOnImg:
             else:
                 img = self.trsfm_basic(img)
         else:
-            img = self.trsfm(img)
+            if self.mode == "train:":
+                img = self.trsfm_train(img)
+            else:
+                img = self.trsfm(img)
         return img
 
 class BagDataCollatePretrain():
