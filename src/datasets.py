@@ -418,9 +418,9 @@ class HPADataset:
 
 
 
-def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1,shuffle=False):
+def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1,shuffle=False, classes=10):
 
-    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size, shuffle=shuffle)
+    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size, shuffle=shuffle, classes=classes)
     ds = GeneratorDataset(pretrain_dataset, ['img_basic1','img_basic2','img_aux','label'])
     #ds = ds.batch(batch_size)
     #ds = ds.repeat(epoch)

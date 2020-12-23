@@ -30,7 +30,11 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False):
     if auc_use_micro:
         sk_auc = sklearn_auc_micro(gt, score)
     else:
-        sk_auc = sklearn_auc_macro(gt, score)
+        try:
+            sk_auc = sklearn_auc_macro(gt, score)
+        except ValueError:
+            sk_auc = sklearn_auc_micro(gt, score)
+
     sk_f1_macro = sklearn_f1_macro(gt, predict)
     sk_f1_micro = sklearn_f1_micro(gt, predict)
 

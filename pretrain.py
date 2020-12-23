@@ -14,9 +14,9 @@ from mindspore.train import Model
 from mindspore.context import ParallelMode
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
 from mindspore.nn import SGD
-#from optimizer import SGD_ as SGD
+# from optimizer import SGD_ as SGD
 import mindspore.dataset.engine as de
-#from mindspore.train.callback import SummaryCollector
+# from mindspore.train.callback import SummaryCollector
 
 from src.config import get_pretrain_config, save_config, get_logger
 # from imagenet_dataset import get_train_dataset, get_test_dataset, get_train_test_dataset
@@ -29,31 +29,30 @@ from src.network_define_pretrain import WithLossCell, TrainOneStepCell
 from src.callbacks import LossCallBack
 from src.loss import LossNet
 from src.lr_schedule import step_cosine_lr, cosine_lr
-#from knn_eval import KnnEval, FeatureCollectCell
+
+# from knn_eval import KnnEval, FeatureCollectCell
 
 random.seed(123)
 np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-#parser.add_argument("--use_moxing", type=bool, default=False, help="whether use moxing for huawei cloud.")
-#parser.add_argument("--data_url", type=str, default='', help="huawei cloud ModelArts need it.")
-#parser.add_argument("--train_url", type=str, default='', help="huawei cloud ModelArts need it.")
-#parser.add_argument("--src_url", type=str, default='obs://tuyanlun/data/', help="huawei cloud ModelArts need it.")
-#parser.add_argument("--dst_url", type=str, default='/cache/data', help="huawei cloud ModelArts need it.")
-#parser.add_argument("--run_distribute", type=bool, default=False, help="Run distribute, default is false.")
-#parser.add_argument("--do_train", type=bool, default=True, help="Do train or not, default is true.")
-#parser.add_argument("--do_eval", type=bool, default=False, help="Do eval or not, default is false.")
-#parser.add_argument("--pre_trained", type=str, default="", help="Pretrain file path.")
-parser.add_argument("--device_id", type=int, default=1, help="Device id, default is 0.")
+# parser.add_argument("--use_moxing", type=bool, default=False, help="whether use moxing for huawei cloud.")
+# parser.add_argument("--data_url", type=str, default='', help="huawei cloud ModelArts need it.")
+# parser.add_argument("--train_url", type=str, default='', help="huawei cloud ModelArts need it.")
+# parser.add_argument("--src_url", type=str, default='obs://tuyanlun/data/', help="huawei cloud ModelArts need it.")
+# parser.add_argument("--dst_url", type=str, default='/cache/data', help="huawei cloud ModelArts need it.")
+# parser.add_argument("--run_distribute", type=bool, default=False, help="Run distribute, default is false.")
+# parser.add_argument("--do_train", type=bool, default=True, help="Do train or not, default is true.")
+# parser.add_argument("--do_eval", type=bool, default=False, help="Do eval or not, default is false.")
+# parser.add_argument("--pre_trained", type=str, default="", help="Pretrain file path.")
+parser.add_argument("--device_id", type=int, default=3, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
-#parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
+# parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-#parser.add_argument("--mindspore_version", type=float, default=0.6, help="Mindspore version default 0.6.")
+# parser.add_argument("--mindspore_version", type=float, default=0.6, help="Mindspore version default 0.6.")
 args_opt = parser.parse_args()
-
-
 
 if __name__ == '__main__':
     config = get_pretrain_config()
@@ -69,7 +68,7 @@ if __name__ == '__main__':
     # print("args_opt.train_url:", args_opt.train_url)
     # print("args_opt.src_url:", args_opt.src_url)
     # print("args_opt.dst_url:", args_opt.dst_url)
-    #temp_path = ''
+    # temp_path = ''
     # if args_opt.use_moxing:
     #     device_id = int(os.getenv('DEVICE_ID'))
     #     device_num = int(os.getenv('RANK_SIZE'))
@@ -91,7 +90,7 @@ if __name__ == '__main__':
 
     if device_num > 1:
         context.set_auto_parallel_context(device_num=device_num, parallel_mode=ParallelMode.DATA_PARALLEL,
-                                          mirror_mean=False, parameter_broadcast=True,full_batch=False)
+                                          mirror_mean=False, parameter_broadcast=True, full_batch=False)
         init()
         temp_path = os.path.join(temp_path, str(device_id))
         print("temp path with multi-device:{}".format(temp_path))
@@ -118,7 +117,8 @@ if __name__ == '__main__':
     # epoch_for_dataset = config.epochs if args_opt.mindspore_version == 0.5 else 1
     epoch_for_dataset = config.epochs
 
-    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size, shuffle=True)
+    dataset = makeup_pretrain_dataset(data_dir=data_dir, batch_size=config.batch_size, bag_size=config.bag_size,
+                                      shuffle=True, classes=config.classes)
     # dataset.__loop_size__ = 1
 
     # train_dataset = get_train_dataset(train_data_dir=train_data_dir, batchsize=config.batch_size,
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     #     print("train data:",data)
     #     break
 
-    #train_dataset.__loop_size__ = 1
+    # train_dataset.__loop_size__ = 1
 
     # eval_dataset contains train dataset and test dataset, which is used for knn eval
     # eval_dataset = get_train_test_dataset(train_data_dir=train_data_dir, test_data_dir=test_data_dir,
@@ -187,8 +187,8 @@ if __name__ == '__main__':
 
     # eval_network = FeatureCollectCell(resnet)
 
-    loss_cb = LossCallBack(data_size=dataset_batch_num,logger=logger)
-    
+    loss_cb = LossCallBack(data_size=dataset_batch_num, logger=logger)
+
     cb = [loss_cb]
 
     if config.save_checkpoint:
