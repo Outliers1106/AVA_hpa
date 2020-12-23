@@ -12,7 +12,7 @@ from src.RandAugment import RandAugment
 # from utils.autoaugment import CIFAR10Policy, SVHNPolicy
 # from utils.GaussianBlur import GaussianBlur
 
-#import mindspore.dataset.transforms.vision.py_transforms as transforms
+# import mindspore.dataset.transforms.vision.py_transforms as transforms
 import numpy as np
 from mindspore.dataset import GeneratorDataset
 import pandas as pd
@@ -20,6 +20,7 @@ from collections import Counter
 # v1.0
 from mindspore.dataset.transforms.py_transforms import Compose
 import mindspore.dataset.vision.py_transforms as transforms
+
 
 # random.seed(1)
 # np.random.seed(1)
@@ -34,28 +35,29 @@ def split_train_val_test(sids):
 
     return sids[:ts], sids[ts:vs], sids[vs:]
 
+
 class TransformOnImg:
     def __init__(self, mode):
         self.mode = mode
-        rand_augment = RandAugment(n=2,m=10)
-        #v1.0
+        rand_augment = RandAugment(n=2, m=10)
+        # v1.0
         self.trsfm_basic = Compose([
-        #self.trsfm_basic = transforms.Compose([
-            #transforms.Decode(),
+            # self.trsfm_basic = transforms.Compose([
+            # transforms.Decode(),
             transforms.ToPIL(),
             transforms.Resize(256),
             transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0.4),
-            #transforms.ColorJitter(0.4, 0.4, 0.4, 0.4),
+            # transforms.ColorJitter(0.4, 0.4, 0.4, 0.4),
             transforms.RandomGrayscale(prob=0.2),
-            #transforms.RandomGrayscale(p=0.2),
+            # transforms.RandomGrayscale(p=0.2),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
         self.trsfm_aux = Compose([
-        #self.trsfm_aux = transforms.Compose([
-            #transforms.Decode(),
+            # self.trsfm_aux = transforms.Compose([
+            # transforms.Decode(),
             transforms.ToPIL(),
             transforms.Resize(256),
             transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
@@ -73,16 +75,16 @@ class TransformOnImg:
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
         self.trsfm = Compose([
-        #self.trsfm = trsfm = transforms.Compose([
-            #transforms.Decode(),
+            # self.trsfm = trsfm = transforms.Compose([
+            # transforms.Decode(),
             transforms.ToPIL(),
             transforms.Resize(224),
-            #transforms.Resize(256),
-            #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
+            # transforms.Resize(256),
+            # transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
-    
+
     def __call__(self, img, use_aux=False):
         if self.mode == "pretrain":
             if use_aux:
@@ -96,18 +98,20 @@ class TransformOnImg:
                 img = self.trsfm(img)
         return img
 
+
 class BagDataCollatePretrain():
     def __init__(self):
         pass
 
     def __call__(self, batch):
         imgs_basic1, imgs_basic2, imgs_aux, anns = batch
-        #print("pretrain shape:",imgs_basic1.shape,imgs_basic2.shape,imgs_aux.shape, anns.shape)
+        # print("pretrain shape:",imgs_basic1.shape,imgs_basic2.shape,imgs_aux.shape, anns.shape)
         return imgs_basic1, imgs_basic2, imgs_aux, anns
+
 
 class BagDataCollate():
 
-    def __init__(self,mode):
+    def __init__(self, mode):
         self.mode = mode
 
     def aggregate(self, img, label, nslice):
@@ -121,18 +125,16 @@ class BagDataCollate():
             allimgs[cur:cur + nslice[s]] = img[s, :nslice[s], :]
             alllabels[cur:cur + nslice[s]] = label[s, :]
             cur = cur + nslice[s]
-        
+
         if self.mode == "train":
-            #print("cur train")
-            #print(allimgs.shape,alllabels.shape,nslice.shape)
+            # print("cur train")
+            # print(allimgs.shape,alllabels.shape,nslice.shape)
             return allimgs.astype(np.float32), alllabels.astype(np.float32), nslice.astype(np.int32)
 
-        else: # need `nslice` to recover bag when eval
-            #print("cur val or test")
-            #print(allimgs.shape, label.shape, nslice.shape)
+        else:  # need `nslice` to recover bag when eval
+            # print("cur val or test")
+            # print(allimgs.shape, label.shape, nslice.shape)
             return allimgs.astype(np.float32), label.astype(np.float32), nslice.astype(np.int32)
-
-        
 
     def __call__(self, batch):
         # 输入一个batch的bag
@@ -142,7 +144,7 @@ class BagDataCollate():
         # print("bimgs",bimgs)
         # print("blabel",blabel)
         size = len(bsid)
-        
+
         # 统计每个bag的patch数量
         nslice = [x.shape[0] for x in bimgs]
         max_slice = max(nslice)
@@ -169,13 +171,15 @@ class BagDataCollate():
         pad_imgs = np.array(pad_imgs)[order]
         blabel = np.array(blabel)[order]
         nslice = nslice[order]
-        #print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
+        # print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
         # 返回数据
-        #print(np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
-        #TODO 返回的得是The type of `tensor input_data` should be one of ['Tensor', 'float', 'int'], but got ndarray.
-        return self.aggregate(np.array(pad_imgs), np.array(blabel),np.array(nslice))
+        # print(np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
+        # TODO 返回的得是The type of `tensor input_data` should be one of ['Tensor', 'float', 'int'], but got ndarray.
+        return self.aggregate(np.array(pad_imgs), np.array(blabel), np.array(nslice))
         # return np.array(pad_imgs), np.array(blabel)
-        #return np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs)
+        # return np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs)
+
+
 # 均衡操作
 def find_i_j_v(seq):
     '''isOk[i][j][v]: find j numbers from front i sum to v
@@ -238,7 +242,7 @@ class HPADataset:
         self.collate = BagDataCollate(mode=mode)
         self.collate_pretrain = BagDataCollatePretrain()
         self.nclasses = classes
-        self.transform = TransformOnImg(mode = mode)
+        self.transform = TransformOnImg(mode=mode)
         self.mode = mode
         self.data_dir = data_dir
         self.bag_size = bag_size
@@ -250,16 +254,16 @@ class HPADataset:
         train_sids, val_sids, test_sids = split_train_val_test(sids)
 
         if mode == 'pretrain':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size) # max_bag_size=1
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size)  # max_bag_size=1
         elif mode == 'train':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size) # max_bag_size=1
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size)  # max_bag_size=1
         elif mode == 'val':
-            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size) # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size)  # max_bag_size=20
         elif mode == 'test':
-            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size) # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size)  # max_bag_size=20
         if shuffle:
             np.random.shuffle(self.sids)
-        
+
     def load_data(self, d, sids, max_bag_size):
         '''
             最终的字典格式为:
@@ -315,7 +319,6 @@ class HPADataset:
             anns[self.top_cv.index(ann)] = 1
         return anns
 
-
     def filter_top_cv(self, k=10, csv_file="enhanced.csv"):
         # 获取所有蛋白质文件夹的label
         all_cv = []
@@ -352,9 +355,8 @@ class HPADataset:
             print("Error: top cv less than k", count)
         return filter_d, top_cv
 
-
     def __len__(self):
-        
+
         return len(self.sids) // self.batch_size
 
     def __getitem__(self, index):
@@ -364,7 +366,7 @@ class HPADataset:
             imgs_basic2 = []
             imgs_aux = []
             anns = []
-            for idx in range(index*self.batch_size, (index+1)*self.batch_size):
+            for idx in range(index * self.batch_size, (index + 1) * self.batch_size):
                 sid = self.sids[idx]
                 sid_imgs = self.db[sid]['img']
                 ann = self.get_sid_label(sid)
@@ -375,7 +377,7 @@ class HPADataset:
                     img_basic2 = self.transform(img)
                     imgs_basic1.append(img_basic1)
                     imgs_basic2.append(img_basic2)
-                    img_aux = self.transform(img,use_aux=True)
+                    img_aux = self.transform(img, use_aux=True)
                     imgs_aux.append(img_aux)
                     anns.append(ann)
 
@@ -388,58 +390,57 @@ class HPADataset:
 
         else:
             # print("get item: not pretrain")
-            imgs_tuple=[]
-            anns_tuple=[]
-            sids_tuple=[]
-            
-            for idx in range(index*self.batch_size, (index+1)*self.batch_size):
+            imgs_tuple = []
+            anns_tuple = []
+            sids_tuple = []
+
+            for idx in range(index * self.batch_size, (index + 1) * self.batch_size):
                 imgs = []
 
                 sid = self.sids[idx]
-                #print("sid:",sid)
+                # print("sid:",sid)
                 sid_imgs = self.db[sid]['img']
-                #print("sid imgs:",sid_imgs)
+                # print("sid imgs:",sid_imgs)
                 ann = self.get_sid_label(sid)
-                #print("ann:",ann)
-                
+                # print("ann:",ann)
+
                 for imgpth in sid_imgs:
                     img = Image.open(imgpth).convert('RGB')
                     img = np.asarray(img)
                     img = self.transform(img)
                     imgs.append(img)
-                
+
                 imgs = np.stack(imgs)
                 imgs_tuple.append(imgs)
                 anns_tuple.append(ann)
                 sids_tuple.append(sid)
-                
+
             batch = (tuple(sids_tuple), tuple(imgs_tuple), tuple(anns_tuple))
             return self.collate(batch)
 
 
-
-def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1,shuffle=False, classes=10):
-
-    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size, shuffle=shuffle, classes=classes)
-    ds = GeneratorDataset(pretrain_dataset, ['img_basic1','img_basic2','img_aux','label'])
-    #ds = ds.batch(batch_size)
-    #ds = ds.repeat(epoch)
+def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1, shuffle=False, classes=10, num_parallel_workers=4):
+    pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size,
+                                  shuffle=shuffle, classes=classes)
+    ds = GeneratorDataset(pretrain_dataset, ['img_basic1', 'img_basic2', 'img_aux', 'label'],
+                          num_parallel_workers=num_parallel_workers)
+    # ds = ds.batch(batch_size)
+    # ds = ds.repeat(epoch)
 
     return ds
 
-def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1,shuffle=False, classes=10):
 
-    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size, shuffle=shuffle, classes=classes)
-    if mode=="train":
-        ds = GeneratorDataset(dataset, ['imgs','labels','nslice'])
+def makeup_dataset(data_dir, mode, batch_size, bag_size, epoch=1, shuffle=False, classes=10, num_parallel_workers=4):
+    dataset = HPADataset(data_dir=data_dir, mode=mode, batch_size=batch_size, bag_size=bag_size, shuffle=shuffle,
+                         classes=classes)
+    if mode == "train":
+        ds = GeneratorDataset(dataset, ['imgs', 'labels', 'nslice'], num_parallel_workers=num_parallel_workers)
     else:
-        ds = GeneratorDataset(dataset, ['imgs', 'labels', 'nslice'])
-    #ds = ds.batch(batch_size)
-    #ds = ds.repeat(epoch)
+        ds = GeneratorDataset(dataset, ['imgs', 'labels', 'nslice'], num_parallel_workers=num_parallel_workers)
+    # ds = ds.batch(batch_size)
+    # ds = ds.repeat(epoch)
 
     return ds
-
-
 
 
 if __name__ == "__main__":
@@ -461,8 +462,7 @@ if __name__ == "__main__":
         # TEST_DATA_DIR = '/home/tuyanlun/code/ms_r0.5/project/cifar-10-batches-bin/test'
         DATA_DIR = '../hpa_dataset/hpa'
 
-    
-    hpa_pretrain_dataset = makeup_pretrain_dataset(data_dir=DATA_DIR,batch_size=64, bag_size=1, epoch=100)  
+    hpa_pretrain_dataset = makeup_pretrain_dataset(data_dir=DATA_DIR, batch_size=64, bag_size=1, epoch=100)
     ds = hpa_pretrain_dataset.create_dict_iterator()
     for data in ds:
         print(data)

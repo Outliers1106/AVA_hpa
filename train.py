@@ -103,9 +103,11 @@ if __name__ == '__main__':
     epoch_for_dataset = config.epochs
 
     train_dataset = makeup_dataset(data_dir=data_dir, mode='train', batch_size=config.batch_size_for_train,
-                                   bag_size=config.bag_size_for_train, shuffle=True, classes=config.classes)
+                                   bag_size=config.bag_size_for_train, shuffle=True, classes=config.classes,
+                                   num_parallel_workers=config.num_parallel_workers)
     eval_dataset = makeup_dataset(data_dir=data_dir, mode='val', batch_size=config.batch_size_for_eval,
-                                  bag_size=config.bag_size_for_eval, classes=config.classes)
+                                  bag_size=config.bag_size_for_eval, classes=config.classes,
+                                  num_parallel_workers=config.num_parallel_workers)
     train_dataset.__loop_size__ = 1
     eval_dataset.__loop_size__ = 1
 

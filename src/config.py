@@ -32,6 +32,7 @@ def get_pretrain_config():
         "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size": 1,
         "classes":27,
+        "num_parallel_workers":4,
 
         # optimizer
         "base_lr": 0.003,
@@ -80,6 +81,7 @@ def get_train_config():
         "bag_size_for_train": 1,
         "bag_size_for_eval": 20,
         "classes":27,
+        "num_parallel_workers": 4,
 
         # optimizer
         "base_lr": 0.0001,
