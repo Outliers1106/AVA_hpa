@@ -111,15 +111,22 @@ class BagDataCollatePretrain():
 
 class BagDataCollate():
 
-    def __init__(self, mode):
+    def __init__(self, mode, max_bag_size=1):
         self.mode = mode
+        self.max_bag_size = max_bag_size
 
     def aggregate(self, img, label, nslice):
         nb, _, c, h, w = img.shape
         _, nclasses = label.shape
-        img_count = np.sum(nslice)
-        allimgs = np.zeros([img_count, c, h, w])
-        alllabels = np.zeros([img_count, nclasses])
+        # img_count = np.sum(nslice)
+
+        # allimgs = np.zeros([img_count, c, h, w])
+        allimgs = np.zeros([self.max_bag_size * len(nslice), c, h, w])
+
+        # alllabels = np.zeros([img_count, nclasses])
+        alllabels = np.zeros([self.max_bag_size * len(nslice), nclasses])
+
+        # 返回padding之后图像数据
         cur = 0
         for s in range(nb):
             allimgs[cur:cur + nslice[s]] = img[s, :nslice[s], :]
@@ -140,6 +147,7 @@ class BagDataCollate():
         # 输入一个batch的bag
 
         bsid, bimgs, blabel = batch
+
         # print("bsid",bsid)
         # print("bimgs",bimgs)
         # print("blabel",blabel)
@@ -148,10 +156,7 @@ class BagDataCollate():
         # 统计每个bag的patch数量
         nslice = [x.shape[0] for x in bimgs]
         max_slice = max(nslice)
-        # print("point--------point")
-        # print("nslice",nslice)
-        # print("size",size)
-        # print("max_slice",max_slice)
+
         # 通过拼接的方式将所有bag的patch数量统一为最大量
         pad_imgs = []
         for i in range(size):
@@ -171,10 +176,12 @@ class BagDataCollate():
         pad_imgs = np.array(pad_imgs)[order]
         blabel = np.array(blabel)[order]
         nslice = nslice[order]
+
+
+
         # print("not pretrain shape:",np.array(bsid).shape,np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
         # 返回数据
         # print(np.array(pad_imgs).shape, np.array(blabel).shape, np.array(nslice).shape)
-        # TODO 返回的得是The type of `tensor input_data` should be one of ['Tensor', 'float', 'int'], but got ndarray.
         return self.aggregate(np.array(pad_imgs), np.array(blabel), np.array(nslice))
         # return np.array(pad_imgs), np.array(blabel)
         # return np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs),np.array(pad_imgs)
@@ -239,7 +246,7 @@ def balance_split(seq):
 
 class HPADataset:
     def __init__(self, data_dir, mode, batch_size, bag_size, classes=10, shuffle=False):
-        self.collate = BagDataCollate(mode=mode)
+        self.collate = BagDataCollate(mode=mode, max_bag_size=bag_size)
         self.collate_pretrain = BagDataCollatePretrain()
         self.nclasses = classes
         self.transform = TransformOnImg(mode=mode)

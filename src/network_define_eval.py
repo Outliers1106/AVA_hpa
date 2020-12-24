@@ -52,8 +52,8 @@ class EvalCell(nn.Cell):
     def construct(self, data, label, nslice):
         outputs = self._network(data)
 
-        val_predict = []
-        cur = 0
+        # val_predict = []
+        # cur = 0
         # numpy_predict = outputs.asnumpy()
         # label = label.asnumpy()
         # nslice = nslice.asnumpy()
@@ -112,8 +112,9 @@ class EvalMetric(nn.Metric):
         numpy_predict = inputs[0].asnumpy()
         label = inputs[1].asnumpy()
         nslice = inputs[2].asnumpy()
-        #data = inputs[3].asnumpy()
-        # print("label:{}".format(label))
+        # data = inputs[3].asnumpy()
+
+
         self.label_num = label.shape[1]
         for i in range(len(label)):
             # 取均值
@@ -123,6 +124,8 @@ class EvalMetric(nn.Metric):
             cur = cur + nslice[i]
             val_predict.append(sample_bag_predict)
 
+
+
         self.cnt = self.cnt + 1
         self.total_loss += 0
         # 保存中间结果   
@@ -131,10 +134,6 @@ class EvalMetric(nn.Metric):
         self.np_score.append(val_predict)
         self.np_label.append(label)
 
-        # print("val_pd:{}".format(val_pd))
-        # print("val_predict:{}".format(val_predict))
-        # print("label:{}".format(label))
-        # print("data:{}".format(data[0]))
 
         if len(self.np_label_each_label) == 0:
             for i in range(self.label_num):
@@ -154,12 +153,13 @@ class EvalMetric(nn.Metric):
         self.np_label = np.concatenate(self.np_label)
         self.np_pd = np.concatenate(self.np_pd)
         self.np_score = np.concatenate(self.np_score)
-        # print("self.np_label.shape",self.np_label.shape)
+
         for i in range(self.label_num):
             if len(self.np_label_each_label[i]) > 0:
                 self.np_label_each_label[i] = np.concatenate(self.np_label_each_label[i])
                 self.np_score_each_label[i] = np.concatenate(self.np_score_each_label[i])
                 self.np_pd_each_label[i] = np.concatenate(self.np_pd_each_label[i])
+
                 lab_f1_macro_each_label, lab_f1_micro_each_label, label_auc_each_label = eval_metrics.np_metrics(
                     self.np_label_each_label[i], self.np_pd_each_label[i], score=self.np_score_each_label[i],
                     auc_use_micro=True)
