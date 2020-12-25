@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser(description="AVA pretraining")
 # parser.add_argument("--do_train", type=bool, default=True, help="Do train or not, default is true.")
 # parser.add_argument("--do_eval", type=bool, default=False, help="Do eval or not, default is false.")
 # parser.add_argument("--pre_trained", type=str, default="", help="Pretrain file path.")
-parser.add_argument("--device_id", type=int, default=3, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=5, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 # parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
@@ -147,11 +147,11 @@ if __name__ == '__main__':
     logger.info("the chosen network is {}".format(config.network))
 
     if config.network == 'resnet18':
-        resnet = resnet18(low_dims=config.low_dims, pretrain=True)
+        resnet = resnet18(low_dims=config.low_dims, pretrain=True, classes=config.classes)
     elif config.network == 'resnet50':
-        resnet = resnet50(low_dims=config.low_dims, pretrain=True)
+        resnet = resnet50(low_dims=config.low_dims, pretrain=True, classes=config.classes)
     elif config.network == 'resnet101':
-        resnet = resnet101(low_dims=config.low_dims, pretrain=True)
+        resnet = resnet101(low_dims=config.low_dims, pretrain=True, classes=config.classes)
     else:
         raise ("Unsupported net work!")
 
