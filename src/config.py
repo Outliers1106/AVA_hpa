@@ -32,7 +32,7 @@ def get_pretrain_config():
         "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size": 1,
         "classes":27,
-        "num_parallel_workers":4,
+        "num_parallel_workers":8,
 
         # optimizer
         "base_lr": 0.003,
@@ -63,25 +63,18 @@ def get_train_config():
         "network": "resnet18",
         "low_dims": 128,
         "use_MLP": False,
-        
-        # load pretrain model
-        "load_ckpt": False,
-        "load_ckpt_path": "/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet50/checkpoint-20201201-000717",
-        "load_ckpt_filename":"AVA-100_2185.ckpt",
+
         # save
         "save_checkpoint": True,
-        "log_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix,
-        "checkpoint_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix + "/checkpoint" + time_prefix,
         "save_checkpoint_epochs": 1,
         "keep_checkpoint_max": 2,
 
         # dataset
         "dataset": "hpa",
-        "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size_for_train": 1,
         "bag_size_for_eval": 20,
         "classes":27,
-        "num_parallel_workers": 4,
+        "num_parallel_workers": 8,
 
         # optimizer
         "base_lr": 0.0001,
@@ -93,7 +86,7 @@ def get_train_config():
         
         # trainer
         "batch_size_for_train": 8,
-        "batch_size_for_eval":3,
+        "batch_size_for_eval": 3,
         "epochs": 20,
         "eval_per_epoch": 1,
         "lr_schedule": "cosine_lr",
@@ -103,12 +96,13 @@ def get_train_config():
     return config
 
 
-def save_config(paths, dict):
+def save_config(paths, config, args_opt):
     if not isinstance(paths, list):
         paths = [paths]
     for path in paths:
         file = open(path, "w")
-        json.dump(dict, file, indent=4)
+        dicts = dict(config, **args_opt)
+        json.dump(dicts, file, indent=4)
         file.close()
 
 

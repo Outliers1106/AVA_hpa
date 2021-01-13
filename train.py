@@ -43,26 +43,38 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=1, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=7, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
-# parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-# parser.add_argument("--mindspore_version", type=float, default=0.6, help="Mindspore version default 0.6.")
-# parser.add_argument('--load_ckpt_path', type=str, default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201027-181404/AVA-27_2185.ckpt', help='checkpoint path of pretrain model')
-
+parser.add_argument("--load_ckpt_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27/checkpoint-20201226-233018/AVA-100_2328.ckpt", help="path to load pretrain model")
+parser.add_argument("--data_dir", type=str,
+                    default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
+                    help="dataset directory")
+parser.add_argument("--save_checkpoint_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
+                    help="path to save checkpoint")
+parser.add_argument("--log_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
+                    help="path to save log file")
 args_opt = parser.parse_args()
 
 if __name__ == '__main__':
     config = get_train_config()
 
-    checkpoint_dir = config.checkpoint_dir
-    data_dir = config.data_dir
-    log_dir = config.log_dir
-    if not os.path.exists(checkpoint_dir):
-        os.makedirs(checkpoint_dir)
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    temp_path = ""
+    save_checkpoint_path = os.path.join(args_opt.save_checkpoint_path,
+                                        config.prefix + "/checkpoint" + config.time_prefix)
+    save_checkpoint_path = os.path.join(temp_path, save_checkpoint_path)
+    log_path = os.path.join(args_opt.log_path, config.prefix)
+    log_path = os.path.join(temp_path, log_path)
+
+    data_dir = args_opt.data_dir
+
+    if not os.path.exists(save_checkpoint_path):
+        os.makedirs(save_checkpoint_path)
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
+    logger = get_logger(os.path.join(log_path, 'log' + config.time_prefix + '.log'))
 
     device_id = args_opt.device_id
     device_num = args_opt.device_num
@@ -81,22 +93,6 @@ if __name__ == '__main__':
         temp_path = os.path.join(temp_path, str(device_id))
         print("temp path with multi-device:{}".format(temp_path))
 
-    # if args_opt.use_moxing:
-    #     mox.file.shift('os', 'mox')
-    #     mox.file.copy_parallel(src_url=args_opt.data_url, dst_url=temp_path)
-    #     #mox.file.copy_parallel(src_url=os.path.join(args_opt.data_url, 'val'), dst_url=os.path.join(temp_path, 'val'))
-
-    #     checkpoint_dir = os.path.join(temp_path, config.moxing_save_checkpoint_path)
-    #     train_data_dir = os.path.join(temp_path, config.moxing_train_data_dir)
-    #     #test_data_dir = os.path.join(temp_path, config.moxing_test_data_dir)
-    #     #log_dir = os.path.join(temp_path, config.moxing_log_dir)
-    # else:
-    #     checkpoint_dir = os.path.join(temp_path, config.save_checkpoint_path)
-    #     train_data_dir = os.path.join(temp_path, config.train_data_dir)
-    #     #test_data_dir = os.path.join(temp_path, config.test_data_dir)
-    #     #log_dir = os.path.join(temp_path, config.log_dir)
-
-    logger = get_logger(os.path.join(log_dir, 'log' + config.time_prefix + '.log'))
 
     print("start create dataset...")
 
@@ -115,6 +111,7 @@ if __name__ == '__main__':
     eval_dataset_batch_num = int(eval_dataset.get_dataset_size())
     print("train dataset.get_dataset_size:{}".format(train_dataset.get_dataset_size()))
     print("eval dataset.get_dataset_size:{}".format(eval_dataset.get_dataset_size()))
+
     print("the chosen network is {}".format(config.network))
     logger.info("the chosen network is {}".format(config.network))
 
@@ -126,12 +123,11 @@ if __name__ == '__main__':
         resnet = resnet101(low_dims=config.low_dims, pretrain=False, classes=config.classes)
     else:
         raise ("Unsupported net work!")
-    if config.load_ckpt:
-        print("load checkpoint from {},{}".format(config.load_ckpt_path, config.load_ckpt_filename))
-        load_checkpoint(os.path.join(config.load_ckpt_path, config.load_ckpt_filename), net=resnet)
+    if args_opt.load_ckpt_path != "":
+        print("load checkpoint from {}".format(args_opt.load_ckpt_path))
+        load_checkpoint(args_opt.load_ckpt_path, net=resnet)
     else:
         print("dont load checkpoint")
-    # logger.info(resnet)
 
     loss = BCELoss(reduction='mean')
 
@@ -175,75 +171,23 @@ if __name__ == '__main__':
     if config.save_checkpoint:
         ckptconfig = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * train_dataset_batch_num,
                                       keep_checkpoint_max=config.keep_checkpoint_max)
-        ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=checkpoint_dir, config=ckptconfig)
+        ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=save_checkpoint_path, config=ckptconfig)
         cb += [ckpoint_cb]
 
     model = Model(net, metrics={'results_return': EvalMetric()},
                   eval_network=eval_network)
-    # model._init(train_dataset,eval_dataset)
+
     epoch_per_eval = {"epoch": [], "f1_macro": [], "f1_micro": [], "auc": [], "val_loss": []}
 
     eval_cb = EvalCallBack(model=model, eval_dataset=eval_dataset, eval_per_epoch=config.eval_per_epoch,
                            epoch_per_eval=epoch_per_eval, logger=logger)
     cb += [eval_cb]
 
-    logger.info("save configs...")
     print("save configs...")
     # save current config
     config_name = 'config.json'
-    save_config([os.path.join(checkpoint_dir, config_name)], config)
+    save_config([os.path.join(save_checkpoint_path, config_name)], config, vars(args_opt))
 
-    logger.info("training begins...")
     print("training begins...")
 
     model.train(config.epochs, train_dataset, callbacks=cb, dataset_sink_mode=False)
-    # model.train(config.epochs, dataset, callbacks=cb, dataset_sink_mode=True)
-    # try:
-    #     
-    # except Exception as e:
-    #     if device_num>1:
-    #         obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
-    #         obs_save_path=os.path.join(obs_save_path,str(device_id))
-    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-    #                                dst_url= obs_save_path)
-    #     else:
-    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-    #                            dst_url=os.path.join(config.moxing_model_save_path, config.prefix))
-
-    # for epoch_idx in range(1, config.epochs + 1):
-    #     # ckpoint_cb.set_epoch(epoch_idx)
-    #     model.train(1, train_dataset, callbacks=cb, dataset_sink_mode=True)
-
-    #     time_cost = loss_cb.get_per_step_time()
-    #     loss = loss_cb.get_loss()
-    #     print("the {} epoch's resnet result: "
-    #           " training loss {}, "
-    #           "training per step cost {:.2f} s, total_cost {:.2f} s".format(
-    #         epoch_idx, loss, time_cost, time_cost * train_dataset_batch_num))
-    #     logger.info("the {} epoch's resnet result: "
-    #                 " training loss {},"
-    #                 "training per step cost {:.2f} s, total_cost {:.2f} s".format(
-    #         epoch_idx, loss, time_cost, time_cost * train_dataset_batch_num))
-
-    #     if epoch_idx % config.eval_pause == 0:
-    #         start = time.time()
-    #         output = model.eval(eval_dataset)
-    #         val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results']
-
-    #         end = time.time()
-    #         logger.info("the {} epoch's Eval result: "
-    #                 "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
-    #                 "eval cost {:.2f} s".format(
-    #         epoch_idx, val_loss, lab_f1_macro, lab_f1_micro, lab_auc, end-start))
-
-    # if args_opt.use_moxing:
-    #     print("download file to obs...")
-    #     if device_num>1:
-    #         obs_save_path=os.path.join(config.moxing_model_save_path, config.prefix)
-    #         obs_save_path=os.path.join(obs_save_path,str(device_id))
-    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-    #                                dst_url= obs_save_path)
-
-    #     else:
-    #         mox.file.copy_parallel(src_url=os.path.join(temp_path, config.prefix),
-    #                            dst_url=os.path.join(config.moxing_model_save_path, config.prefix))
