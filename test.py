@@ -43,19 +43,23 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=3, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=7, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 # parser.add_argument("--rank_id", type=int, default=0, help="Rank id, default is 0.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
 # parser.add_argument("--mindspore_version", type=float, default=0.6, help="Mindspore version default 0.6.")
 # parser.add_argument('--load_ckpt_path', type=str, default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-resnet50/checkpoint-20201027-181404/AVA-27_2185.ckpt', help='checkpoint path of pretrain model')
+# parser.add_argument('--ckpt_path', type=str,
+#                     default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18-27/checkpoint-20201223-145622/AVA-20_9313.ckpt',
+#                     help='model checkpoint path')
 parser.add_argument('--ckpt_path', type=str,
-                    default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18/checkpoint-20201218-225845/AVA-20_8742.ckpt',
+                    default='/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18-27/checkpoint-20201223-145622/AVA-20_9313.ckpt',
                     help='model checkpoint path')
 parser.add_argument("--model_arch", type=str, default="resnet18", help='model architecture')
 parser.add_argument("--data_dir", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
                     help='dataset path')
+parser.add_argument("--classes", type=int, default=27, help='class number')
 
 args_opt = parser.parse_args()
 
@@ -66,11 +70,11 @@ if __name__ == "__main__":
     data_dir = args_opt.data_dir
 
     if args_opt.model_arch == 'resnet18':
-        resnet = resnet18(pretrain=False)
+        resnet = resnet18(pretrain=False, classes=args_opt.classes)
     elif args_opt.model_arch == 'resnet50':
-        resnet = resnet50(pretrain=False)
+        resnet = resnet50(pretrain=False, classes=args_opt.classes)
     elif args_opt.model_arch == 'resnet101':
-        resnet = resnet101(pretrain=False)
+        resnet = resnet101(pretrain=False, classes=args_opt.classes)
     else:
         raise ("Unsupported net work!")
 
@@ -86,7 +90,7 @@ if __name__ == "__main__":
 
     # print("param_dict:{}".format(param_dict.keys()))
     load_param_into_net(resnet, param_dict)
-    test_dataset = makeup_dataset(data_dir=data_dir, mode='test', batch_size=3, bag_size=20, num_parallel_workers=4)
+    test_dataset = makeup_dataset(data_dir=data_dir, mode='test', batch_size=3, bag_size=20, classes=args_opt.classes, num_parallel_workers=4)
     test_dataset.__loop_size__ = 1
 
     test_dataset_batch_num = int(test_dataset.get_dataset_size())
