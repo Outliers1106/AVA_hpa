@@ -27,7 +27,7 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA pretraining")
-parser.add_argument("--device_id", type=int, default=3, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=2, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')

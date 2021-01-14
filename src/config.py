@@ -10,7 +10,7 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain-resnet18-27-217"
+    prefix = "AVA-hpa-pretrain-resnet18-10-613"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -31,7 +31,7 @@ def get_pretrain_config():
         "dataset": "hpa",
         "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size": 1,
-        "classes": 27,
+        "classes": 10,
         "num_parallel_workers":8,
 
         # optimizer
