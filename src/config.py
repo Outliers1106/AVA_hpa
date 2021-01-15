@@ -54,7 +54,7 @@ def get_pretrain_config():
 
 def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-train-resnet18-10-217"
+    prefix = "AVA-hpa-train-resnet18-10-613"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
