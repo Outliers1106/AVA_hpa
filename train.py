@@ -42,12 +42,12 @@ random.seed(123)
 np.random.seed(123)
 de.config.set_seed(123)
 
-parser = argparse.ArgumentParser(description="AVA pretraining")
+parser = argparse.ArgumentParser(description="AVA training")
 parser.add_argument("--device_id", type=int, default=7, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-parser.add_argument("--load_ckpt_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27/checkpoint-20201226-233018/AVA-100_2328.ckpt", help="path to load pretrain model")
+parser.add_argument("--load_ckpt_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-10-217/checkpoint-20210114-235226/AVA-100_1055.ckpt", help="path to load pretrain model")
 parser.add_argument("--data_dir", type=str,
                     default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
                     help="dataset directory")
@@ -104,13 +104,19 @@ if __name__ == '__main__':
     eval_dataset = makeup_dataset(data_dir=data_dir, mode='val', batch_size=config.batch_size_for_eval,
                                   bag_size=config.bag_size_for_eval, classes=config.classes,
                                   num_parallel_workers=config.num_parallel_workers)
+    test_dataset = makeup_dataset(data_dir=data_dir, mode='test', batch_size=1, bag_size=20, classes=config.classes,
+                                  num_parallel_workers=8)
+
     train_dataset.__loop_size__ = 1
     eval_dataset.__loop_size__ = 1
+    test_dataset.__loop_size__ = 1
 
     train_dataset_batch_num = int(train_dataset.get_dataset_size())
     eval_dataset_batch_num = int(eval_dataset.get_dataset_size())
+    test_dataset_batch_num = int(test_dataset.get_dataset_size())
     print("train dataset.get_dataset_size:{}".format(train_dataset.get_dataset_size()))
     print("eval dataset.get_dataset_size:{}".format(eval_dataset.get_dataset_size()))
+    print("test dataset.get_dataset_size:{}".format(test_dataset.get_dataset_size()))
 
     print("the chosen network is {}".format(config.network))
     logger.info("the chosen network is {}".format(config.network))
@@ -191,3 +197,7 @@ if __name__ == '__main__':
     print("training begins...")
 
     model.train(config.epochs, train_dataset, callbacks=cb, dataset_sink_mode=False)
+    logger.info("Eval on test dataset ...")
+    res = model.eval(test_dataset)
+    print("Eval result:{}".format(res))
+    logger.info("Eval result:{}".format(res))

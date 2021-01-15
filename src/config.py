@@ -10,7 +10,7 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain-resnet18-10-613"
+    prefix = "AVA-hpa-pretrain-resnet18-27-613"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -31,7 +31,7 @@ def get_pretrain_config():
         "dataset": "hpa",
         "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size": 1,
-        "classes": 10,
+        "classes": 27,
         "num_parallel_workers":8,
 
         # optimizer
@@ -54,7 +54,7 @@ def get_pretrain_config():
 
 def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-train-resnet18-27"
+    prefix = "AVA-hpa-train-resnet18-10-217"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -73,7 +73,7 @@ def get_train_config():
         "dataset": "hpa",
         "bag_size_for_train": 1,
         "bag_size_for_eval": 20,
-        "classes":27,
+        "classes":10,
         "num_parallel_workers": 8,
 
         # optimizer
@@ -86,7 +86,7 @@ def get_train_config():
         
         # trainer
         "batch_size_for_train": 8,
-        "batch_size_for_eval": 3,
+        "batch_size_for_eval": 1,
         "epochs": 20,
         "eval_per_epoch": 1,
         "lr_schedule": "cosine_lr",
