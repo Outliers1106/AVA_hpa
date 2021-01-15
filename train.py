@@ -43,11 +43,13 @@ np.random.seed(123)
 de.config.set_seed(123)
 
 parser = argparse.ArgumentParser(description="AVA training")
-parser.add_argument("--device_id", type=int, default=7, help="Device id, default is 0.")
+parser.add_argument("--device_id", type=int, default=6, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-parser.add_argument("--load_ckpt_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-10-217/checkpoint-20210114-235226/AVA-100_1055.ckpt", help="path to load pretrain model")
+parser.add_argument("--load_ckpt_path", type=str,
+                    default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27-217/checkpoint-20210114-235413/AVA-100_1147.ckpt",
+                    help="path to load pretrain model")
 parser.add_argument("--data_dir", type=str,
                     default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
                     help="dataset directory")
@@ -92,7 +94,6 @@ if __name__ == '__main__':
         init()
         temp_path = os.path.join(temp_path, str(device_id))
         print("temp path with multi-device:{}".format(temp_path))
-
 
     print("start create dataset...")
 
