@@ -47,12 +47,12 @@ parser.add_argument("--device_id", type=int, default=7, help="Device id, default
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
 parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-# parser.add_argument("--load_ckpt_path", type=str,
-#                     default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27-217/checkpoint-20210114-235413/AVA-100_1147.ckpt",
-#                     help="path to load pretrain model")
 parser.add_argument("--load_ckpt_path", type=str,
-                    default="",
+                    default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-10-613/checkpoint-20210115-151303/AVA-100_3255.ckpt",
                     help="path to load pretrain model")
+# parser.add_argument("--load_ckpt_path", type=str,
+#                     default="",
+#                     help="path to load pretrain model")
 parser.add_argument("--data_dir", type=str,
                     default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
                     help="dataset directory")
