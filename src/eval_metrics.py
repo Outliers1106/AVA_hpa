@@ -1,6 +1,5 @@
 from sklearn import metrics
 import numpy as np
-#import torch
 
 epsilon = 1e-8
 
@@ -21,12 +20,6 @@ def sklearn_f1_micro(gt, predict):
 
 
 def np_metrics(gt, predict, score=None, auc_use_micro=False):
-    # print("gt",gt)
-    # print("predict",predict)
-    # print("score",score)
-    # print("gt.shape",gt.shape)
-    # print("predict.shape",predict.shape)
-    # print("score.shape",score.shape)
     if auc_use_micro:
         sk_auc = sklearn_auc_micro(gt, score)
     else:
@@ -69,16 +62,6 @@ def threshold_tensor_batch(predict, base=0.5):
     pd_threshold = np.greater_equal(predict, threshold[:,np.newaxis])
     return pd_threshold
 
-
-def threshold_predict(predict, base=0.5):
-    '''make sure at least one label for one example'''
-    p_max = torch.max(predict)
-    pivot = torch.cuda.FloatTensor([base])
-    threshold = torch.min(p_max, pivot)
-    pd_threshold = torch.ge(predict, threshold)
-    return pd_threshold
-
-# ---------------------------------------------------------------------
 
 
 def compute_f1(precision, recall):

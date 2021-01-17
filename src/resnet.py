@@ -16,11 +16,9 @@
 import numpy as np
 import mindspore.nn as nn
 from mindspore.ops import operations as P
-from mindspore import context
 from mindspore.common.tensor import Tensor
 from mindspore.common.initializer import initializer
 import mindspore.common.dtype as mstype
-# from mindspore.ops import resolved_ops as RO
 
 
 def _weight_variable(shape):
@@ -402,19 +400,3 @@ def resnet18(low_dims=128, pretrain=True, use_MLP=False, classes=10):
                   pretrain=pretrain,
                   use_MLP=use_MLP,
                   nclass=classes)
-
-
-if __name__ == "__main__":
-    context.set_context(mode=context.PYNATIVE_MODE, device_target="Ascend")
-    input3 = Tensor(np.random.randn(12, 3, 224, 224).astype(np.float32))
-    input2 = Tensor(np.random.randn(12, 3, 224, 224).astype(np.float32))
-    input1 = Tensor(np.random.randn(12, 3, 224, 224).astype(np.float32))
-
-    model = resnet50(128, pretrain=True)
-    print('------------------------------------------------------------------------------')
-    print('---------------------resnet50分割线------------------------')
-    print('------------------------------------------------------------------------------')
-    # print(model)
-    res = model(input3)
-    print(res)
-    print(P.Shape()(res[0]))
