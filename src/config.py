@@ -15,24 +15,21 @@ def get_pretrain_config():
         # base setting
         "description": "this is the description for currnet config file.",
         "prefix": prefix,
-        "time_prefix":time_prefix,
+        "time_prefix": time_prefix,
         "network": "resnet18",
         "low_dims": 128,
         "use_MLP": True,
 
         # save
         "save_checkpoint": True,
-        "log_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix,
-        "checkpoint_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa/" + prefix + "/checkpoint" + time_prefix,
         "save_checkpoint_epochs": 1,
         "keep_checkpoint_max": 2,
 
         # dataset
         "dataset": "hpa",
-        "data_dir": "/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
         "bag_size": 1,
         "classes": 27,
-        "num_parallel_workers":8,
+        "num_parallel_workers": 8,
 
         # optimizer
         "base_lr": 0.003,
@@ -40,7 +37,7 @@ def get_pretrain_config():
         "momentum": 0.9,
         "weight_decay": 5e-4,
         "loss_scale": 1,
-        "sigma":0.1,
+        "sigma": 0.1,
 
         # trainer
         "batch_size": 32,
@@ -59,7 +56,7 @@ def get_train_config():
         # base setting
         "description": "this is the description for currnet config file.",
         "prefix": prefix,
-        "time_prefix":time_prefix,
+        "time_prefix": time_prefix,
         "network": "resnet18",
         "low_dims": 128,
         "use_MLP": False,
@@ -73,7 +70,7 @@ def get_train_config():
         "dataset": "hpa",
         "bag_size_for_train": 1,
         "bag_size_for_eval": 20,
-        "classes":27,
+        "classes": 27,
         "num_parallel_workers": 8,
 
         # optimizer
@@ -83,7 +80,7 @@ def get_train_config():
         "beta2": 0.999,
         "weight_decay": 0,
         "loss_scale": 1,
-        
+
         # trainer
         "batch_size_for_train": 8,
         "batch_size_for_eval": 1,
