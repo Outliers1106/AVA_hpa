@@ -9,7 +9,7 @@ from mindspore.dataset.transforms.py_transforms import Compose
 import mindspore.dataset.vision.py_transforms as transforms
 
 
-# 数据集划分, 训练集:验证集:测试集 = 6:1:3
+# split train val test = 6:1:3
 def split_train_val_test(sids):
     np.random.seed(286501567)
     np.random.shuffle(sids)
@@ -92,7 +92,7 @@ class BagDataCollate():
         allimgs = np.zeros([self.max_bag_size * len(nslice), c, h, w])
         alllabels = np.zeros([self.max_bag_size * len(nslice), nclasses])
 
-        # 返回padding之后图像数据
+        # return images after padding
         cur = 0
         for s in range(nb):
             allimgs[cur:cur + nslice[s]] = img[s, :nslice[s], :]
@@ -106,17 +106,16 @@ class BagDataCollate():
             return allimgs.astype(np.float32), label.astype(np.float32), nslice.astype(np.int32)
 
     def __call__(self, batch):
-        # 输入一个batch的bag
-
+        # bag of one batch
         bsid, bimgs, blabel = batch
 
         size = len(bsid)
 
-        # 统计每个bag的patch数量
+        # calculate num of patch per bag
         nslice = [x.shape[0] for x in bimgs]
         max_slice = max(nslice)
 
-        # 通过拼接的方式将所有bag的patch数量统一为最大量
+        # unify the num of patch to maximum by padding
         pad_imgs = []
         for i in range(size):
             pad_img = np.pad(
@@ -126,11 +125,11 @@ class BagDataCollate():
                 constant_values=0
             )
             pad_imgs.append(pad_img)
-        # 将一个batch里面的bag根据patch的数量重新排序,使得更加的均衡
+
+        # resort bags in a batch by the num of patch to make balance
         nslice = np.array(nslice)
         order = balance_split(nslice)
 
-        # 对这个batch的数据样本进行重排序
         bsid = np.array(bsid)[order]
         pad_imgs = np.array(pad_imgs)[order]
         blabel = np.array(blabel)[order]
@@ -138,7 +137,7 @@ class BagDataCollate():
 
         return self.aggregate(np.array(pad_imgs), np.array(blabel), np.array(nslice))
 
-# 均衡操作
+# balance operation
 def find_i_j_v(seq):
     '''isOk[i][j][v]: find j numbers from front i sum to v
     for seq, index starts from 0
@@ -222,32 +221,33 @@ class HPADataset:
 
     def load_data(self, d, sids, max_bag_size):
         '''
-            最终的字典格式为:
+            final dict format:
             {
-                "蛋白名_序号值":{
+                "protein_id":{
                     img: ["686_A3_2_blue_red_green_1.jpg", "686_A3_2_blue_red_green_2.jpg", ...]
                     label: ['2', '5', '6']
                 }
                 ...
             }
         '''
-        # 制作字典
+        # make dict
         imgdir = self.data_dir
         final_d = {}
         for sid in sids:
-            # 读取这个目录下面的所有图片
+
+            # read all images in this dir
             gene_imgs = []
             for gene_img in os.listdir(os.path.join(imgdir, sid)):
                 img_pth = os.path.join(imgdir, sid, gene_img)
                 gene_imgs.append(img_pth)
 
-            # 对多于max_bag_size张的进行划分，确定每包包含的图片的大小
+            # split when more than max_bag_size images
             gene_imgs = list(set(gene_imgs))
             bag_size = len(gene_imgs)
             while (bag_size > max_bag_size):
                 bag_size = bag_size // 2
 
-            # 保存满包的数据
+            # save data of full-size bag
             num_bags = len(gene_imgs) // bag_size
             for i in range(num_bags):
                 bag_img = gene_imgs[i * bag_size: (i + 1) * bag_size]
@@ -257,7 +257,7 @@ class HPADataset:
                 final_d[gene_name]['img'] = bag_img
                 final_d[gene_name]['label'] = d[sid]
 
-            # 保存不满包的数据
+            # save data of none full-size bag
             if (len(gene_imgs) > num_bags * bag_size):
                 bag_img = gene_imgs[num_bags * bag_size:]
                 gene_name = '%s_%d' % (sid, num_bags)
@@ -276,29 +276,27 @@ class HPADataset:
         return anns
 
     def filter_top_cv(self, k=10, csv_file="enhanced.csv"):
-        # 获取所有蛋白质文件夹的label
+        # get label
         all_cv = []
         label_file = pd.read_csv(csv_file)
         labels = label_file['label']
         for label in labels:
             all_cv += list(label.split(";"))
 
-        # 统计label的个数,并获取top的label
+        # count label num to get top-frequent label
         count = Counter(all_cv)
         top_cv = [x[0] for x in count.most_common(k)]
 
-        # 首先制作目前的蛋白质文件夹和label对应的字典
+        # make dict mapping dir to label
         d = {}
         genes = label_file['Gene']
         labels = label_file['label']
         for i in range(len(genes)):
             d[genes[i]] = list(labels[i].split(";"))
 
-        # 制作一个蛋白质文件夹字典，保存过滤后的对应关系
         filter_d = {}
         all_sids = sorted(d.keys())
         for sid in all_sids:
-            # 保存top k的蛋白质文件夹的label
             for label in d[sid]:
                 if label not in top_cv:
                     continue
@@ -306,7 +304,6 @@ class HPADataset:
                     filter_d[sid] = []
                 filter_d[sid].append(label)
 
-        # 返回过滤后的数据
         if len(top_cv) < k:
             print("Error: top cv less than k", count)
         return filter_d, top_cv
