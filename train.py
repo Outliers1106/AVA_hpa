@@ -1,12 +1,7 @@
 import os
-
-os.system('export PYTHONPATH=/usr/local/Ascend/opp/op_impl/built-in/ai_core/tbe')
-os.system('source /home/tuyanlun/code/mindspore_r1.0/env.sh')
 import argparse
 import random
 import numpy as np
-import time
-import logging
 
 import mindspore.common.dtype as mstype
 from mindspore import context, Tensor
@@ -17,26 +12,17 @@ from mindspore.train import Model
 from mindspore.context import ParallelMode
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
 from mindspore.nn import SGD, Adam
-
-# from optimizer import SGD_ as SGD
 import mindspore.dataset.engine as de
-# from mindspore.train.callback import SummaryCollector
 
 from src.config import get_train_config, save_config, get_logger
-# from imagenet_dataset import get_train_dataset, get_test_dataset, get_train_test_dataset
-from src.datasets import makeup_pretrain_dataset, makeup_dataset
-# from config import get_config, save_config, get_logger
-# from datasets import get_train_dataset, get_test_dataset, get_train_test_dataset
+from src.datasets import makeup_dataset
 
 from src.resnet import resnet18, resnet50, resnet101
 from src.network_define_train import WithLossCell, TrainOneStepCell
 from src.network_define_eval import EvalCell, EvalMetric, EvalCallBack
 from src.callbacks import LossCallBack
-from src.loss import LossNet
 from src.lr_schedule import step_cosine_lr, cosine_lr
 from src.loss import BCELoss
-
-# from knn_eval import KnnEval, FeatureCollectCell
 
 random.seed(123)
 np.random.seed(123)
@@ -45,21 +31,12 @@ de.config.set_seed(123)
 parser = argparse.ArgumentParser(description="AVA training")
 parser.add_argument("--device_id", type=int, default=7, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
-parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
+parser.add_argument('--device_target', type=str, default="Ascend", help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-parser.add_argument("--load_ckpt_path", type=str,
-                    default="/home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27-613/checkpoint-20210115-151444/AVA-100_3469.ckpt",
-                    help="path to load pretrain model")
-# parser.add_argument("--load_ckpt_path", type=str,
-#                     default="",
-#                     help="path to load pretrain model")
-parser.add_argument("--data_dir", type=str,
-                    default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
-                    help="dataset directory")
-parser.add_argument("--save_checkpoint_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
-                    help="path to save checkpoint")
-parser.add_argument("--log_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
-                    help="path to save log file")
+parser.add_argument("--load_ckpt_path", type=str, default="", help="path to load pretrain model")
+parser.add_argument("--data_dir", type=str, default="", help="dataset directory")
+parser.add_argument("--save_checkpoint_path", type=str, default="", help="path to save checkpoint")
+parser.add_argument("--log_path", type=str, default="", help="path to save log file")
 args_opt = parser.parse_args()
 
 if __name__ == '__main__':

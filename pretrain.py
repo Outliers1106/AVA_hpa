@@ -21,7 +21,6 @@ from src.callbacks import LossCallBack
 from src.loss import LossNet
 from src.lr_schedule import step_cosine_lr, cosine_lr
 
-
 random.seed(123)
 np.random.seed(123)
 de.config.set_seed(123)
@@ -29,17 +28,11 @@ de.config.set_seed(123)
 parser = argparse.ArgumentParser(description="AVA pretraining")
 parser.add_argument("--device_id", type=int, default=1, help="Device id, default is 0.")
 parser.add_argument("--device_num", type=int, default=1, help="Use device nums, default is 1.")
-parser.add_argument('--device_target', type=str, default='Ascend', help='Device target')
+parser.add_argument('--device_target', type=str, default="Ascend", help='Device target')
 parser.add_argument('--run_distribute', type=bool, default=False, help='Run distribute')
-parser.add_argument("--data_dir", type=str,
-                    default="/home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa",
-                    help="dataset directory")
-parser.add_argument("--save_checkpoint_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
-                    help="path to save checkpoint")
-parser.add_argument("--log_path", type=str, default="/home/tuyanlun/code/mindspore_r1.0/hpa/",
-                    help="path to save log file")
-
-
+parser.add_argument("--data_dir", type=str, default="", help="dataset directory")
+parser.add_argument("--save_checkpoint_path", type=str, default="", help="path to save checkpoint")
+parser.add_argument("--log_path", type=str, default="", help="path to save log file")
 
 args_opt = parser.parse_args()
 
