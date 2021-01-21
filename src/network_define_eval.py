@@ -47,9 +47,10 @@ class EvalCell(nn.Cell):
 
 
 class EvalMetric(nn.Metric):
-    def __init__(self):
+    def __init__(self, path):
         super(EvalMetric, self).__init__()
         self.clear()
+        self.path = path
 
     def clear(self):
         self.total_loss = 0.0
@@ -125,5 +126,5 @@ class EvalMetric(nn.Metric):
             else:
                 print("label:{} does not exist!".format(i))
 
-        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.np_metrics(self.np_label, self.np_pd, score=self.np_score)
+        lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.np_metrics(self.np_label, self.np_pd, score=self.np_score, path=self.path)
         return loss, lab_f1_macro, lab_f1_micro, lab_auc

@@ -1,5 +1,6 @@
 from sklearn import metrics
 import numpy as np
+import os
 
 epsilon = 1e-8
 
@@ -19,14 +20,19 @@ def sklearn_f1_micro(gt, predict):
     return metrics.f1_score(gt, predict, average='micro')
 
 
-def np_metrics(gt, predict, score=None, auc_use_micro=False):
-    if auc_use_micro:
-        sk_auc = sklearn_auc_micro(gt, score)
-    else:
-        try:
-            sk_auc = sklearn_auc_macro(gt, score)
-        except ValueError:
-            sk_auc = sklearn_auc_micro(gt, score)
+def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
+    # if auc_use_micro:
+    #     sk_auc = sklearn_auc_micro(gt, score)
+    # else:
+    #     try:
+    #         sk_auc = sklearn_auc_macro(gt, score)
+    #     except ValueError:
+    #         sk_auc = sklearn_auc_micro(gt, score)
+    try:
+        sk_auc_macro = sklearn_auc_macro(gt, score)
+    except ValueError:
+        sk_auc_macro = -1
+    sk_auc_micro = sklearn_auc_micro(gt, score)
 
     sk_f1_macro = sklearn_f1_macro(gt, predict)
     sk_f1_micro = sklearn_f1_micro(gt, predict)
@@ -34,7 +40,46 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False):
     lab_sensitivity = label_sensitivity(gt, predict)
     lab_specificity = label_specificity(gt, predict)
 
-    return sk_f1_macro, sk_f1_micro, sk_auc
+    ex_subset_acc = example_subset_accuracy(gt, predict)
+    ex_acc = example_accuracy(gt, predict)
+    ex_precision = example_precision(gt, predict)
+    ex_recall = example_recall(gt, predict)
+    ex_f1 = compute_f1(ex_precision, ex_recall)
+
+    lab_acc_macro = label_accuracy_macro(gt, predict)
+    lab_precision_macro = label_precision_macro(gt, predict)
+    lab_recall_macro = label_recall_macro(gt, predict)
+    lab_f1_macro = compute_f1(lab_precision_macro, lab_recall_macro)
+
+    lab_acc_micro = label_accuracy_micro(gt, predict)
+    lab_precision_micro = label_precision_micro(gt, predict)
+    lab_recall_micro = label_recall_micro(gt, predict)
+    lab_f1_micro = compute_f1(lab_precision_micro, lab_recall_micro)
+
+    with open(os.path.join(path,"eval.txt"), 'a+') as f:
+        f.write("example_subset_accuracy:   %.4f\n" % ex_subset_acc)
+        f.write("example_accuracy:          %.4f\n" % ex_acc)
+        f.write("example_precision:         %.4f\n" % ex_precision)
+        f.write("example_recall:            %.4f\n" % ex_recall)
+        f.write("example_f1:                %.4f\n" % ex_f1)
+
+        f.write("label_accuracy_macro:      %.4f\n" % lab_acc_macro)
+        f.write("label_precision_macro:     %.4f\n" % lab_precision_macro)
+        f.write("label_recall_macro:        %.4f\n" % lab_recall_macro)
+        f.write("label_f1_macro:            %.4f\n" % lab_f1_macro)
+
+        f.write("label_accuracy_micro:      %.4f\n" % lab_acc_micro)
+        f.write("label_precision_micro:     %.4f\n" % lab_precision_micro)
+        f.write("label_recall_micro:        %.4f\n" % lab_recall_micro)
+        f.write("label_f1_micro:            %.4f\n" % lab_f1_micro)
+
+        f.write("sk_auc_macro:              %.4f\n" % sk_auc_macro)
+        f.write("sk_auc_micro:              %.4f\n" % sk_auc_micro)
+        f.write("sk_f1_macro:               %.4f\n" % sk_f1_macro)
+        f.write("lab_sensitivity:           %.4f\n" % lab_sensitivity)
+        f.write("lab_specificity:           %.4f\n" % lab_specificity)
+
+    return sk_f1_macro, sk_f1_micro, sk_auc_macro
 
 
 def write_metrics(pth, gt, predict, score=None):
