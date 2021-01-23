@@ -14,6 +14,6 @@ python ${PROJECT_DIR}/../eval.py \
     --device_target Ascend \
     --model_arch resnet18 \
     --classes 10 \
-    --ckpt_path /home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18/checkpoint-20201208-182112/AVA-20_8742.ckpt\
+    --ckpt_path /home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18/checkpoint-20201218-225845/AVA-20_8742.ckpt\
     --data_dir /home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa \
-    --save_eval_path ./415_10_no_pretrain/
+    --save_eval_path ./415_10_aag_pretrain/
