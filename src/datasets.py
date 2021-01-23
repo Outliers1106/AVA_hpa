@@ -13,8 +13,8 @@ import mindspore.dataset.vision.py_transforms as transforms
 def split_train_val_test(sids):
     np.random.seed(286501567)
     np.random.shuffle(sids)
-    ts = int(len(sids) * 0.4)
-    vs = int(len(sids) * 0.5)
+    ts = int(len(sids) * 0.6)
+    vs = int(len(sids) * 0.7)
 
     return sids[:ts], sids[ts:vs], sids[vs:]
 
