@@ -26,7 +26,7 @@ parser.add_argument("--model_arch", type=str, default="resnet18", help='model ar
 parser.add_argument("--data_dir", type=str, default="",
                     help='dataset path')
 parser.add_argument("--classes", type=int, default=10, help='class number')
-
+parser.add_argument("--save_eval_path", type=str, default=".", help='path to save eval result')
 args_opt = parser.parse_args()
 
 if __name__ == "__main__":
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     loss = BCELoss(reduction='mean')
     test_network = EvalCell(resnet, loss)
-    model = Model(test_network, metrics={'results_return': EvalMetric()},
+    model = Model(test_network, metrics={'results_return': EvalMetric(path=args_opt.save_eval_path)},
                   eval_network=test_network)
     result = model.eval(test_dataset)
     print(result)

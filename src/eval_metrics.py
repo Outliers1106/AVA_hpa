@@ -76,6 +76,7 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
         f.write("sk_auc_macro:              %.4f\n" % sk_auc_macro)
         f.write("sk_auc_micro:              %.4f\n" % sk_auc_micro)
         f.write("sk_f1_macro:               %.4f\n" % sk_f1_macro)
+        f.write("sk_f1_micro:               %.4f\n" % sk_f1_micro)
         f.write("lab_sensitivity:           %.4f\n" % lab_sensitivity)
         f.write("lab_specificity:           %.4f\n" % lab_specificity)
 
