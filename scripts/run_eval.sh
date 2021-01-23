@@ -9,11 +9,11 @@ echo "==========================================================================
 PROJECT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 python ${PROJECT_DIR}/../eval.py \
-    --device_id 2 \
+    --device_id 1 \
     --device_num 1 \
     --device_target Ascend \
     --model_arch resnet18 \
     --classes 10 \
-    --ckpt_path /home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18-10-613/checkpoint-20210115-153614/AVA-20_13020.ckpt\
+    --ckpt_path /home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-train-resnet18-10-613/checkpoint-20210116-103517/AVA-20_13020.ckpt\
     --data_dir /home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa \
-    --save_eval_path ./613_10_no_pretrain/
+    --save_eval_path ./613_10_aag_pretrain/
