@@ -55,7 +55,8 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
     lab_precision_micro = label_precision_micro(gt, predict)
     lab_recall_micro = label_recall_micro(gt, predict)
     lab_f1_micro = compute_f1(lab_precision_micro, lab_recall_micro)
-
+    if not os.path.exists(path):
+        os.makedirs(path)
     with open(os.path.join(path,"eval.txt"), 'a+') as f:
         f.write("example_subset_accuracy:   %.4f\n" % ex_subset_acc)
         f.write("example_accuracy:          %.4f\n" % ex_acc)
