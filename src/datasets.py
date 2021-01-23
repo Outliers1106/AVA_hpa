@@ -9,12 +9,12 @@ from mindspore.dataset.transforms.py_transforms import Compose
 import mindspore.dataset.vision.py_transforms as transforms
 
 
-# split train val test = 4:1:5
+# split train val test = 2:1:7
 def split_train_val_test(sids):
     np.random.seed(286501567)
     np.random.shuffle(sids)
-    ts = int(len(sids) * 0.6)
-    vs = int(len(sids) * 0.7)
+    ts = int(len(sids) * 0.2)
+    vs = int(len(sids) * 0.3)
 
     return sids[:ts], sids[ts:vs], sids[vs:]
 
