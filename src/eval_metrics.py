@@ -75,19 +75,20 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
         f.write("lab_sensitivity:           %.4f\n" % lab_sensitivity)
         f.write("lab_specificity:           %.4f\n" % lab_specificity)
 
-        f.write("label_accuracy_macro: ")
+        f.write("\nlabel_f1_average: %.4f\n" % f1_list_mean)
+        f.write("label_accuracy_macro: \n")
         for i in range(len(lab_acc_macro_list)):
-            f.write("(label:%d,label_accuracy: %.4f)" % (i, lab_acc_macro_list[i]))
-        f.write("\nlabel_precious_macro: ")
+            f.write("(label:%d,label_accuracy: %.4f)\n" % (i, lab_acc_macro_list[i]))
+        f.write("label_precious_macro: \n")
         for i in range(len(lab_precision_macro_list)):
-            f.write("(label:%d,lab_precision:  %.4f)" % (i, lab_precision_macro_list[i]))
-        f.write("\nlabel_recall_macro: ")
+            f.write("(label:%d,lab_precision:  %.4f)\n" % (i, lab_precision_macro_list[i]))
+        f.write("label_recall_macro: \n")
         for i in range(len(lab_recall_macro_list)):
-            f.write("(label:%d,lab_precision:  %.4f)" % (i, lab_precision_macro_list[i]))
-        f.write("\nlabel_f1_macro: ")
+            f.write("(label:%d,lab_precision:  %.4f)\n" % (i, lab_recall_macro_list[i]))
+        f.write("label_f1_macro: \n")
         for i in range(len(f1_list)):
-            f.write("(label:%d,lab_f1:         %.4f)" % (i, f1_list[i]))
-        f.write("\nlabel_f1_average: %.4f" % f1_list_mean)
+            f.write("(label:%d,lab_f1:         %.4f)\n" % (i, f1_list[i]))
+
     return sk_f1_macro, sk_f1_micro, sk_auc_macro
 
 
