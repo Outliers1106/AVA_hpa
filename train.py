@@ -37,6 +37,7 @@ parser.add_argument("--load_ckpt_path", type=str, default="", help="path to load
 parser.add_argument("--data_dir", type=str, default="", help="dataset directory")
 parser.add_argument("--save_checkpoint_path", type=str, default="", help="path to save checkpoint")
 parser.add_argument("--log_path", type=str, default="", help="path to save log file")
+parser.add_argument("--save_eval_path", type=str, default=".", help='path to save eval result')
 args_opt = parser.parse_args()
 
 if __name__ == '__main__':
@@ -161,7 +162,7 @@ if __name__ == '__main__':
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=save_checkpoint_path, config=ckptconfig)
         cb += [ckpoint_cb]
 
-    model = Model(net, metrics={'results_return': EvalMetric()},
+    model = Model(net, metrics={'results_return': EvalMetric(path=args_opt.save_eval_path)},
                   eval_network=eval_network)
 
     epoch_per_eval = {"epoch": [], "f1_macro": [], "f1_micro": [], "auc": [], "val_loss": []}

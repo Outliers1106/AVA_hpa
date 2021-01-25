@@ -15,4 +15,5 @@ python ${PROJECT_DIR}/../train.py \
     --load_ckpt_path /home/tuyanlun/code/mindspore_r1.0/hpa/AVA-hpa-pretrain-resnet18-27-613/checkpoint-20210115-151444/AVA-100_3469.ckpt\
     --data_dir /home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa \
     --save_checkpoint_path /home/tuyanlun/code/mindspore_r1.0/hpa \
-    --log_path /home/tuyanlun/code/mindspore_r1.0/hpa
+    --log_path /home/tuyanlun/code/mindspore_r1.0/hpa \
+    --save_eval_path .
