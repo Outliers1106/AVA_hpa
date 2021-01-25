@@ -21,13 +21,6 @@ def sklearn_f1_micro(gt, predict):
 
 
 def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
-    # if auc_use_micro:
-    #     sk_auc = sklearn_auc_micro(gt, score)
-    # else:
-    #     try:
-    #         sk_auc = sklearn_auc_macro(gt, score)
-    #     except ValueError:
-    #         sk_auc = sklearn_auc_micro(gt, score)
     try:
         sk_auc_macro = sklearn_auc_macro(gt, score)
     except ValueError:
@@ -46,10 +39,11 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
     ex_recall = example_recall(gt, predict)
     ex_f1 = compute_f1(ex_precision, ex_recall)
 
-    lab_acc_macro = label_accuracy_macro(gt, predict)
-    lab_precision_macro = label_precision_macro(gt, predict)
-    lab_recall_macro = label_recall_macro(gt, predict)
-    lab_f1_macro = compute_f1(lab_precision_macro, lab_recall_macro)
+    lab_acc_macro, lab_acc_macro_list = label_accuracy_macro(gt, predict, average=False)
+    lab_precision_macro, lab_precision_macro_list = label_precision_macro(gt, predict, average=False)
+    lab_recall_macro, lab_recall_macro_list = label_recall_macro(gt, predict, average=False)
+    #lab_f1_macro = compute_f1(lab_precision_macro, lab_recall_macro)
+    lab_f1_macro, f1_list, f1_list_mean = label_f1_macro(gt, predict, average=False)
 
     lab_acc_micro = label_accuracy_micro(gt, predict)
     lab_precision_micro = label_precision_micro(gt, predict)
@@ -81,6 +75,19 @@ def np_metrics(gt, predict, score=None, auc_use_micro=False, path=None):
         f.write("lab_sensitivity:           %.4f\n" % lab_sensitivity)
         f.write("lab_specificity:           %.4f\n" % lab_specificity)
 
+        f.write("label_accuracy_macro: ")
+        for i in range(len(lab_acc_macro_list)):
+            f.write("(label:%d,label_accuracy: %.4f)" % (i, lab_acc_macro_list[i]))
+        f.write("\nlabel_precious_macro: ")
+        for i in range(len(lab_precision_macro_list)):
+            f.write("(label:%d,lab_precision:  %.4f)" % (i, lab_precision_macro_list[i]))
+        f.write("\nlabel_recall_macro: ")
+        for i in range(len(lab_recall_macro_list)):
+            f.write("(label:%d,lab_precision:  %.4f)" % (i, lab_precision_macro_list[i]))
+        f.write("\nlabel_f1_macro: ")
+        for i in range(len(f1_list)):
+            f.write("(label:%d,lab_f1:         %.4f)" % (i, f1_list[i]))
+        f.write("\nlabel_f1_average: %.4f" % f1_list_mean)
     return sk_f1_macro, sk_f1_micro, sk_auc_macro
 
 
@@ -152,31 +159,44 @@ def _label_quantity(gt, predict):
     return np.stack([tp, fp, tn, fn], axis=0).astype("float")
 
 
-def label_accuracy_macro(gt, predict):
+def label_accuracy_macro(gt, predict, average=True):
     quantity = _label_quantity(gt, predict)
     tp_tn = np.add(quantity[0], quantity[2])
     tp_fp_tn_fn = np.sum(quantity, axis=0)
-    return np.mean((tp_tn + epsilon) / (tp_fp_tn_fn + epsilon))
+    if average:
+        return np.mean((tp_tn + epsilon) / (tp_fp_tn_fn + epsilon))
+    else:
+        return np.mean((tp_tn + epsilon) / (tp_fp_tn_fn + epsilon)), (tp_tn + epsilon) / (tp_fp_tn_fn + epsilon)
 
 
-def label_precision_macro(gt, predict):
+def label_precision_macro(gt, predict, average=True):
     quantity = _label_quantity(gt, predict)
     tp = quantity[0]
     tp_fp = np.add(quantity[0], quantity[1])
-    return np.mean((tp + epsilon) / (tp_fp + epsilon))
+    if average:
+        return np.mean((tp + epsilon) / (tp_fp + epsilon))
+    else:
+        return np.mean((tp + epsilon) / (tp_fp + epsilon)), (tp + epsilon) / (tp_fp + epsilon)
 
 
-def label_recall_macro(gt, predict):
+def label_recall_macro(gt, predict, average=True):
     quantity = _label_quantity(gt, predict)
     tp = quantity[0]
     tp_fn = np.add(quantity[0], quantity[3])
-    return np.mean((tp + epsilon) / (tp_fn + epsilon))
+    if average:
+        return np.mean((tp + epsilon) / (tp_fn + epsilon))
+    else:
+        return np.mean((tp + epsilon) / (tp_fn + epsilon)), (tp + epsilon) / (tp_fn + epsilon)
 
 
-def label_f1_macro(gt, predict):
-    p = label_precision_macro(gt, predict)
-    r = label_recall_macro(gt, predict)
-    return (2 * p * r) / (p + r + epsilon)
+def label_f1_macro(gt, predict, average=True):
+    p, plist = label_precision_macro(gt, predict, average=False)
+    r, rlist = label_recall_macro(gt, predict,average=False)
+    f1_list = (2 * plist * rlist) / (plist + rlist + epsilon)
+    if average:
+        return (2 * p * r) / (p + r + epsilon)
+    else:
+        return (2 * p * r) / (p + r + epsilon), f1_list, np.mean(f1_list)
 
 
 def label_accuracy_micro(gt, predict):
