@@ -328,9 +328,10 @@ class ResNet(nn.Cell):
             out1, out2, out3 = self.split(out)
             return out1, out2, out3
         else:
+            out_feature = out
             out = self.end_point_class(out)
             out = self.sigmoid(out)
-            return out
+            return out, out_feature
 
 
 def resnet50(low_dims=128, pretrain=True, use_MLP=False, classes=10):

@@ -41,8 +41,8 @@ class EvalCell(nn.Cell):
         self.criterion = loss
 
     def construct(self, data, label, nslice):
-        outputs = self._network(data)
-        return outputs, label, nslice
+        outputs, outputs_features = self._network(data)
+        return outputs, label, nslice, outputs_features
 
 
 
@@ -57,6 +57,7 @@ class EvalMetric(nn.Metric):
         self.np_label = []
         self.np_pd = []
         self.np_score = []
+        self.np_features = []
 
         self.np_label_each_label = {}
         self.np_pd_each_label = {}
@@ -66,18 +67,23 @@ class EvalMetric(nn.Metric):
         self.cnt = 0
 
     def update(self, *inputs):
+        print("update")
         val_predict = []
+        val_features = []
         cur = 0
         numpy_predict = inputs[0].asnumpy()
         label = inputs[1].asnumpy()
         nslice = inputs[2].asnumpy()
+        numpy_features = inputs[3].asnumpy()
 
 
         self.label_num = label.shape[1]
         for i in range(len(label)):
             sample_bag_predict = np.mean(numpy_predict[int(cur): int(cur) + nslice[i]], axis=0)
+            sample_bag_features = np.mean(numpy_features[int(cur): int(cur) + nslice[i]], axis=0)
             cur = cur + nslice[i]
             val_predict.append(sample_bag_predict)
+            val_features.append(sample_bag_features)
 
 
 
@@ -88,6 +94,7 @@ class EvalMetric(nn.Metric):
         self.np_pd.append(val_pd)
         self.np_score.append(val_predict)
         self.np_label.append(label)
+        self.np_features.append(val_features)
 
 
         if len(self.np_label_each_label) == 0:
@@ -108,7 +115,10 @@ class EvalMetric(nn.Metric):
         self.np_label = np.concatenate(self.np_label)
         self.np_pd = np.concatenate(self.np_pd)
         self.np_score = np.concatenate(self.np_score)
-
+        self.np_features = np.concatenate(self.np_features)
+        print("save")
+        np.save("aag_features.npy",self.np_features)
+        np.save("aag_label.npy", self.np_label)
         # for i in range(self.label_num):
         #     if len(self.np_label_each_label[i]) > 0:
         #         self.np_label_each_label[i] = np.concatenate(self.np_label_each_label[i])

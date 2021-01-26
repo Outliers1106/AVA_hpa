@@ -9,12 +9,12 @@ from mindspore.dataset.transforms.py_transforms import Compose
 import mindspore.dataset.vision.py_transforms as transforms
 
 
-# split train val test = 2:1:7
+# split train val test = 4:1:5
 def split_train_val_test(sids):
     np.random.seed(286501567)
     np.random.shuffle(sids)
-    ts = int(len(sids) * 0.2)
-    vs = int(len(sids) * 0.3)
+    ts = int(len(sids) * 0.4)
+    vs = int(len(sids) * 0.5)
 
     return sids[:ts], sids[ts:vs], sids[vs:]
 
@@ -215,7 +215,7 @@ class HPADataset:
         elif mode == 'val':
             self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size)  # max_bag_size=20
         elif mode == 'test':
-            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size)  # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size)  # max_bag_size=20
         if shuffle:
             np.random.shuffle(self.sids)
 
