@@ -215,7 +215,7 @@ class HPADataset:
         elif mode == 'val':
             self.db, self.sids = self.load_data(filter_d, val_sids, max_bag_size=bag_size)  # max_bag_size=20
         elif mode == 'test':
-            self.db, self.sids = self.load_data(filter_d, train_sids, max_bag_size=bag_size)  # max_bag_size=20
+            self.db, self.sids = self.load_data(filter_d, test_sids, max_bag_size=bag_size)  # max_bag_size=20
         if shuffle:
             np.random.shuffle(self.sids)
 
