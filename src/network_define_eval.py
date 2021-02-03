@@ -20,12 +20,12 @@ class EvalCallBack(Callback):
             start = time.time()
             output = self.model.eval(self.eval_dataset, dataset_sink_mode=False)
             print(output)
-            val_loss, lab_f1_macro, lab_f1_micro, lab_auc = output['results_return']
+            lab_f1_macro, lab_f1_micro, lab_auc = output['results_return']
             end = time.time()
             self.logger.info("the {} epoch's Eval result: "
-                             "eval loss {}, f1_macro {}, f1_micro {}, auc {},"
+                             "f1_macro {}, f1_micro {}, auc {},"
                              "eval cost {:.2f} s".format(
-                epoch_idx, val_loss, lab_f1_macro, lab_f1_micro, lab_auc, end - start))
+                epoch_idx, lab_f1_macro, lab_f1_micro, lab_auc, end - start))
 
             self.epoch_per_eval["epoch"].append(epoch_idx)
             self.epoch_per_eval["f1_macro"].append(lab_f1_macro)
@@ -53,7 +53,6 @@ class EvalMetric(nn.Metric):
         self.path = path
 
     def clear(self):
-        self.total_loss = 0.0
         self.np_label = []
         self.np_pd = []
         self.np_score = []
@@ -82,7 +81,6 @@ class EvalMetric(nn.Metric):
 
 
         self.cnt = self.cnt + 1
-        self.total_loss += 0
         # save middle result
         val_pd = eval_metrics.threshold_tensor_batch(val_predict)
         self.np_pd.append(val_pd)
@@ -104,9 +102,8 @@ class EvalMetric(nn.Metric):
                     self.np_pd_each_label[j].append(val_pd[i].reshape(1, -1))
 
     def eval(self):
-        loss = self.total_loss / self.cnt
         self.np_label = np.concatenate(self.np_label)
         self.np_pd = np.concatenate(self.np_pd)
         self.np_score = np.concatenate(self.np_score)
         lab_f1_macro, lab_f1_micro, lab_auc = eval_metrics.np_metrics(self.np_label, self.np_pd, score=self.np_score, path=self.path)
-        return loss, lab_f1_macro, lab_f1_micro, lab_auc
+        return lab_f1_macro, lab_f1_micro, lab_auc
