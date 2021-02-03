@@ -31,7 +31,6 @@ class EvalCallBack(Callback):
             self.epoch_per_eval["f1_macro"].append(lab_f1_macro)
             self.epoch_per_eval["f1_micro"].append(lab_f1_micro)
             self.epoch_per_eval["auc"].append(lab_auc)
-            self.epoch_per_eval["val_loss"].append(val_loss)
 
 
 class EvalCell(nn.Cell):
