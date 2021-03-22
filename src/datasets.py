@@ -108,7 +108,6 @@ class BagDataCollate():
     def __call__(self, batch):
         # bag of one batch
         bsid, bimgs, blabel = batch
-
         size = len(bsid)
 
         # calculate num of patch per bag
@@ -134,7 +133,6 @@ class BagDataCollate():
         pad_imgs = np.array(pad_imgs)[order]
         blabel = np.array(blabel)[order]
         nslice = nslice[order]
-
         return self.aggregate(np.array(pad_imgs), np.array(blabel), np.array(nslice))
 
 # balance operation
@@ -337,6 +335,10 @@ class HPADataset:
             imgs_basic2 = np.stack(imgs_basic2).astype(np.float32)
             imgs_aux = np.stack(imgs_aux).astype(np.float32)
             anns = np.stack(anns).astype(np.int32)
+            n_b, _, n_c, n_w, n_l = imgs_basic1.shape
+            imgs_basic1 = imgs_basic1.reshape((n_b, n_c, n_w, n_l))
+            imgs_basic2 = imgs_basic2.reshape((n_b, n_c, n_w, n_l))
+            imgs_aux = imgs_aux.reshape((n_b, n_c, n_w, n_l))
             batch = (imgs_basic1, imgs_basic2, imgs_aux, anns)
             return self.collate_pretrain(batch)
 
@@ -356,7 +358,8 @@ class HPADataset:
                     img = Image.open(imgpth).convert('RGB')
                     img = np.asarray(img)
                     img = self.transform(img)
-                    imgs.append(img)
+                    # transform return a tuple of length 1, tuple[0] has the image of shape 3,224,224
+                    imgs.append(img[0])
 
                 imgs = np.stack(imgs)
                 imgs_tuple.append(imgs)

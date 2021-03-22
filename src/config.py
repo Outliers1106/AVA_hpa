@@ -10,7 +10,7 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain"
+    prefix = "AVA-hpa-pretrain-new-exp"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -41,7 +41,7 @@ def get_pretrain_config():
 
         # trainer
         "batch_size": 32,
-        "epochs": 100,
+        "epochs": 40,
         "lr_schedule": "cosine_lr",
         "lr_mode": "epoch",
         "warmup_epoch": 0,
