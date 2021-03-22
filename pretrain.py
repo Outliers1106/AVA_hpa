@@ -12,6 +12,7 @@ from mindspore.train import Model
 from mindspore.context import ParallelMode
 from mindspore.nn import SGD
 import mindspore.dataset.engine as de
+from mindspore.train.callback import SummaryCollector
 
 from src.config import get_pretrain_config, save_config, get_logger
 from src.datasets import makeup_pretrain_dataset
@@ -134,6 +135,9 @@ if __name__ == '__main__':
                                       keep_checkpoint_max=config.keep_checkpoint_max)
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=save_checkpoint_path, config=ckptconfig)
         cb += [ckpoint_cb]
+
+    summary_collector = SummaryCollector(summary_dir=save_checkpoint_path, collect_freq=1)
+    cb += [summary_collector]
 
     model = Model(net)
 

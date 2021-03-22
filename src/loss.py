@@ -5,7 +5,7 @@ from mindspore.common.tensor import Tensor
 from mindspore.ops import operations as P
 from mindspore.ops import functional as F
 from mindspore.ops import _selected_ops
-
+import mindspore.ops as ops
 
 class LossNet(nn.Cell):
     """modified loss function"""
@@ -24,6 +24,9 @@ class LossNet(nn.Cell):
         self.shape = P.Shape()
         self.eye = P.Eye()
         self.temp = temp
+        self.sims = []
+
+        self.scalar_summary = ops.ScalarSummary()
 
     def diag_part_new(self, input, batch_size):
         eye_matrix = self.eye(batch_size, batch_size, mindspore.float32)
@@ -38,8 +41,11 @@ class LossNet(nn.Cell):
         perm = (1, 0)
         mat_x_x = self.exp(self.matmul(x, self.t(x, perm) / self.temp))
         mat_y_y = self.exp(self.matmul(y, self.t(y, perm) / self.temp))
-        mat_x_y = self.exp(self.matmul(x, self.t(y, perm) / self.temp))
-
+        #mat_x_y = self.exp(self.matmul(x, self.t(y, perm) / self.temp))
+        mat_x_y_sim = self.matmul(x, self.t(y, perm))
+        ops.Print()(self.mean(self.diag_part_new(mat_x_y_sim, batch_size)))
+        self.scalar_summary("average mean", self.mean(self.diag_part_new(mat_x_y_sim, batch_size)))
+        mat_x_y = self.exp(mat_x_y_sim/self.temp)
         mat_aux_x = self.exp(self.matmul(x, self.t(z_aux, perm) / self.temp))
         mat_aux_y = self.exp(self.matmul(y, self.t(z_aux, perm) / self.temp))
         mat_aux_z_x = self.exp(self.matmul(z_aux, self.t(x, perm) / self.temp))
