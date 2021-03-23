@@ -6,9 +6,9 @@ echo "==========================================================================
 PROJECT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 python ${PROJECT_DIR}/../pretrain.py \
-    --device_id 0 \
+    --device_id 5 \
     --device_num 1 \
     --device_target Ascend \
-    --data_dir /path_to_hpa \
-    --save_checkpoint_path /path_to_save_ckpt/ \
-    --log_path /path_to_log/
+    --data_dir /home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa \
+    --save_checkpoint_path /home/tuyanlun/code/mindspore_r1.0/hpa/hpa_new_exp \
+    --log_path /home/tuyanlun/code/mindspore_r1.0/hpa/hpa_new_exp
