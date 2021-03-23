@@ -17,7 +17,7 @@ from mindspore.train.callback import SummaryCollector
 from src.config import get_pretrain_config, save_config, get_logger
 from src.datasets import makeup_pretrain_dataset
 from src.resnet import resnet18, resnet50, resnet101
-from src.network_define_pretrain import WithLossCell, TrainOneStepCell
+from src.network_define_pretrain import WithLossCell, TrainOneStepCell, SGD_
 from src.callbacks import LossCallBack
 from src.loss import LossNet
 from src.lr_schedule import step_cosine_lr, cosine_lr
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             mode=config.lr_mode
         ), mstype.float32)
 
-    opt = SGD(params=net_with_loss.trainable_params(), learning_rate=lr, momentum=config.momentum,
+    opt = SGD_(params=net_with_loss.trainable_params(), learning_rate=lr, momentum=config.momentum,
               weight_decay=config.weight_decay, loss_scale=config.loss_scale)
 
     if device_num > 1:

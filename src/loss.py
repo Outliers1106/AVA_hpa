@@ -25,6 +25,7 @@ class LossNet(nn.Cell):
         self.eye = P.Eye()
         self.temp = temp
         self.sims = []
+        self.temp_param = mindspore.Parameter(Tensor(np.zeros((32,32),np.float32)), name='temp-parameter')
 
         self.scalar_summary = ops.ScalarSummary()
 
@@ -43,46 +44,48 @@ class LossNet(nn.Cell):
         mat_y_y = self.exp(self.matmul(y, self.t(y, perm) / self.temp))
         #mat_x_y = self.exp(self.matmul(x, self.t(y, perm) / self.temp))
         mat_x_y_sim = self.matmul(x, self.t(y, perm))
+        self.temp_param = mat_x_y_sim
         ops.Print()(self.mean(self.diag_part_new(mat_x_y_sim, batch_size)))
         self.scalar_summary("average mean", self.mean(self.diag_part_new(mat_x_y_sim, batch_size)))
-        mat_x_y = self.exp(mat_x_y_sim/self.temp)
+        mat_x_y = self.exp(self.temp_param/self.temp)
         mat_aux_x = self.exp(self.matmul(x, self.t(z_aux, perm) / self.temp))
         mat_aux_y = self.exp(self.matmul(y, self.t(z_aux, perm) / self.temp))
         mat_aux_z_x = self.exp(self.matmul(z_aux, self.t(x, perm) / self.temp))
         mat_aux_z_y = self.exp(self.matmul(z_aux, self.t(y, perm) / self.temp))
 
-        # loss_mutual = self.mean(-2 * self.log(self.diag_part_new(mat_x_y, batch_size) / (
-        #             self.sum_keep_dim(mat_x_y, 1) - self.diag_part_new(mat_x_y, batch_size) +
-        #             self.sum_keep_dim(mat_x_x,1) - self.diag_part_new(mat_x_x, batch_size) +
-        #             self.sum_keep_dim(mat_y_y, 1) - self.diag_part_new(mat_y_y, batch_size))))
-        #
-        # loss_aux_x = self.mean(-self.log((self.diag_part_new(mat_aux_x, batch_size) / (
-        #         self.sum_keep_dim(mat_aux_x, 1) - self.diag_part_new(mat_aux_x, batch_size)))))
-        #
-        # loss_aux_y = self.mean(-self.log((self.diag_part_new(mat_aux_y, batch_size) / (
-        #         self.sum_keep_dim(mat_aux_y, 1) - self.diag_part_new(mat_aux_y, batch_size)))))
-        #
-        # loss_aux_z_x = self.mean(- self.log((self.diag_part_new(mat_aux_z_x, batch_size) / (
-        #         self.sum_keep_dim(mat_aux_z_x, 1) - self.diag_part_new(mat_aux_z_x, batch_size)))))
-        #
-        # loss_aux_z_y = self.mean(-self.log((self.diag_part_new(mat_aux_z_y, batch_size) / (
-        #         self.sum_keep_dim(mat_aux_z_y, 1) - self.diag_part_new(mat_aux_z_y, batch_size)))))
         loss_mutual = self.mean(-2 * self.log(self.diag_part_new(mat_x_y, batch_size) / (
-                self.sum_keep_dim(mat_x_y, 1) +
-                self.sum_keep_dim(mat_x_x, 1) - self.diag_part_new(mat_x_x, batch_size) +
-                self.sum_keep_dim(mat_y_y, 1) - self.diag_part_new(mat_y_y, batch_size))))
+                    self.sum_keep_dim(mat_x_y, 1) - self.diag_part_new(mat_x_y, batch_size) +
+                    self.sum_keep_dim(mat_x_x,1) - self.diag_part_new(mat_x_x, batch_size) +
+                    self.sum_keep_dim(mat_y_y, 1) - self.diag_part_new(mat_y_y, batch_size))))
 
         loss_aux_x = self.mean(-self.log((self.diag_part_new(mat_aux_x, batch_size) / (
-                self.sum_keep_dim(mat_aux_x, 1) ))))
+                self.sum_keep_dim(mat_aux_x, 1) - self.diag_part_new(mat_aux_x, batch_size)))))
 
         loss_aux_y = self.mean(-self.log((self.diag_part_new(mat_aux_y, batch_size) / (
-                self.sum_keep_dim(mat_aux_y, 1) ))))
+                self.sum_keep_dim(mat_aux_y, 1) - self.diag_part_new(mat_aux_y, batch_size)))))
 
         loss_aux_z_x = self.mean(- self.log((self.diag_part_new(mat_aux_z_x, batch_size) / (
-                self.sum_keep_dim(mat_aux_z_x, 1) ))))
+                self.sum_keep_dim(mat_aux_z_x, 1) - self.diag_part_new(mat_aux_z_x, batch_size)))))
 
         loss_aux_z_y = self.mean(-self.log((self.diag_part_new(mat_aux_z_y, batch_size) / (
-                self.sum_keep_dim(mat_aux_z_y, 1) ))))
+                self.sum_keep_dim(mat_aux_z_y, 1) - self.diag_part_new(mat_aux_z_y, batch_size)))))
+
+        # loss_mutual = self.mean(-2 * self.log(self.diag_part_new(mat_x_y, batch_size) / (
+        #         self.sum_keep_dim(mat_x_y, 1) +
+        #         self.sum_keep_dim(mat_x_x, 1) - self.diag_part_new(mat_x_x, batch_size) +
+        #         self.sum_keep_dim(mat_y_y, 1) - self.diag_part_new(mat_y_y, batch_size))))
+        #
+        # loss_aux_x = self.mean(-self.log((self.diag_part_new(mat_aux_x, batch_size) / (
+        #         self.sum_keep_dim(mat_aux_x, 1) ))))
+        #
+        # loss_aux_y = self.mean(-self.log((self.diag_part_new(mat_aux_y, batch_size) / (
+        #         self.sum_keep_dim(mat_aux_y, 1) ))))
+        #
+        # loss_aux_z_x = self.mean(- self.log((self.diag_part_new(mat_aux_z_x, batch_size) / (
+        #         self.sum_keep_dim(mat_aux_z_x, 1) ))))
+        #
+        # loss_aux_z_y = self.mean(-self.log((self.diag_part_new(mat_aux_z_y, batch_size) / (
+        #         self.sum_keep_dim(mat_aux_z_y, 1) ))))
 
         loss = loss_mutual + loss_aux_x + loss_aux_y + loss_aux_z_x + loss_aux_z_y
 
