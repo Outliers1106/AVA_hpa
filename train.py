@@ -49,8 +49,7 @@ if __name__ == '__main__':
     save_checkpoint_path = os.path.join(temp_path, save_checkpoint_path)
     log_path = os.path.join(args_opt.log_path, config.prefix)
     log_path = os.path.join(temp_path, log_path)
-    save_eval_path = os.path.join(args_opt.save_eval_path, config.prefix)
-    save_eval_path = os.path.join(temp_path, save_eval_path)
+    save_eval_path = save_checkpoint_path
 
     data_dir = args_opt.data_dir
 
@@ -173,7 +172,7 @@ if __name__ == '__main__':
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=save_checkpoint_path, config=ckptconfig)
         cb += [ckpoint_cb]
 
-    model = Model(net, metrics={'results_return': EvalMetric(path=save_eval_path)},
+    model = Model(net, metrics={'results_return': EvalMetric(path=save_checkpoint_path)},
                   eval_network=eval_network)
 
     epoch_per_eval = {"epoch": [], "f1_macro": [], "f1_micro": [], "auc": [], "val_loss": []}
