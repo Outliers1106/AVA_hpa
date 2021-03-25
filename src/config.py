@@ -84,7 +84,7 @@ def get_train_config():
         # trainer
         "batch_size_for_train": 8,
         "batch_size_for_eval": 1,
-        "epochs": 20,
+        "epochs": 10,
         "eval_per_epoch": 1,
         "lr_schedule": "cosine_lr",
         "lr_mode": "epoch",

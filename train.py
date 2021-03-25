@@ -49,6 +49,8 @@ if __name__ == '__main__':
     save_checkpoint_path = os.path.join(temp_path, save_checkpoint_path)
     log_path = os.path.join(args_opt.log_path, config.prefix)
     log_path = os.path.join(temp_path, log_path)
+    save_eval_path = os.path.join(args_opt.save_eval_path, config.prefix)
+    save_eval_path = os.path.join(temp_path, save_eval_path)
 
     data_dir = args_opt.data_dir
 
@@ -119,6 +121,14 @@ if __name__ == '__main__':
         print("dont load checkpoint")
 
     loss = BCELoss(reduction='mean')
+    for param in resnet.trainable_params():
+        #print(param)
+        if param.name in ['end_point.weight','end_point.bias','end_point_class.weight','end_point_class.bias']:
+            param.requires_grad = True
+            print("set trainable:{}".format(param.name))
+        else:
+            param.requires_grad = False
+
 
     net_with_loss = WithLossCell(resnet, loss)
 
@@ -163,7 +173,7 @@ if __name__ == '__main__':
         ckpoint_cb = ModelCheckpoint(prefix='AVA', directory=save_checkpoint_path, config=ckptconfig)
         cb += [ckpoint_cb]
 
-    model = Model(net, metrics={'results_return': EvalMetric(path=args_opt.save_eval_path)},
+    model = Model(net, metrics={'results_return': EvalMetric(path=save_eval_path)},
                   eval_network=eval_network)
 
     epoch_per_eval = {"epoch": [], "f1_macro": [], "f1_micro": [], "auc": [], "val_loss": []}
