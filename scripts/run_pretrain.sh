@@ -6,7 +6,7 @@ echo "==========================================================================
 PROJECT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 python ${PROJECT_DIR}/../pretrain.py \
-    --device_id 4 \
+    --device_id 2 \
     --device_num 1 \
     --device_target Ascend \
     --data_dir /home/tuyanlun/code/mindspore_r1.0/hpa_dataset/hpa \

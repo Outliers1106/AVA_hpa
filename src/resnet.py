@@ -234,7 +234,7 @@ class ResNet(nn.Cell):
         self.pretrain = pretrain
         self.use_MLP = use_MLP
         self.concat = P.Concat()
-        self.split = P.Split(0, 3)
+        self.split = P.Split(0, 2)
         self.l2norm = P.L2Normalize(axis=1)
 
         self.conv1 = _conv7x7(3, 64, stride=1)
@@ -321,8 +321,8 @@ class ResNet(nn.Cell):
             else:
                 out = self.end_point(out)
             out = self.l2norm(out)
-            out1, out2, out3 = self.split(out)
-            return out1, out2, out3
+            out1, out2 = self.split(out)
+            return out1, out2
         else:
             out = self.end_point_class(out)
             out = self.sigmoid(out)

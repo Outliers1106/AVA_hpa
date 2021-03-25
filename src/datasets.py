@@ -75,8 +75,8 @@ class BagDataCollatePretrain():
         pass
 
     def __call__(self, batch):
-        imgs_basic1, imgs_basic2, imgs_aux, anns = batch
-        return imgs_basic1, imgs_basic2, imgs_aux, anns
+        imgs_basic1, imgs_basic2, anns = batch
+        return imgs_basic1, imgs_basic2, anns
 
 
 class BagDataCollate():
@@ -327,7 +327,8 @@ class HPADataset:
                     img_basic2 = self.transform(img)
                     imgs_basic1.append(img_basic1)
                     imgs_basic2.append(img_basic2)
-                    img_aux = self.transform(img, use_aux=True)
+                    #img_aux = self.transform(img, use_aux=True)
+                    img_aux = self.transform(img) # three basic view exp
                     imgs_aux.append(img_aux)
                     anns.append(ann)
 
@@ -339,7 +340,7 @@ class HPADataset:
             imgs_basic1 = imgs_basic1.reshape((n_b, n_c, n_w, n_l))
             imgs_basic2 = imgs_basic2.reshape((n_b, n_c, n_w, n_l))
             imgs_aux = imgs_aux.reshape((n_b, n_c, n_w, n_l))
-            batch = (imgs_basic1, imgs_basic2, imgs_aux, anns)
+            batch = (imgs_basic1, imgs_basic2, anns)
             return self.collate_pretrain(batch)
 
         else:
@@ -373,7 +374,7 @@ class HPADataset:
 def makeup_pretrain_dataset(data_dir, batch_size, bag_size, epoch=1, shuffle=False, classes=10, num_parallel_workers=4):
     pretrain_dataset = HPADataset(data_dir=data_dir, mode="pretrain", batch_size=batch_size, bag_size=bag_size,
                                   shuffle=shuffle, classes=classes)
-    ds = GeneratorDataset(pretrain_dataset, ['img_basic1', 'img_basic2', 'img_aux', 'label'],
+    ds = GeneratorDataset(pretrain_dataset, ['img_basic1', 'img_basic2', 'label'],
                           num_parallel_workers=num_parallel_workers)
     return ds
 
