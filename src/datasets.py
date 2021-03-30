@@ -27,9 +27,17 @@ class TransformOnImg:
             transforms.ToPIL(),
             transforms.Resize(256),
             transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
-            transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0.4),
-            transforms.RandomGrayscale(prob=0.2),
-            transforms.RandomHorizontalFlip(),
+            transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
+            #transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0.4),
+            #transforms.RandomGrayscale(prob=0.2),
+            transforms.RandomHorizontalFlip(), # set default
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+        self.trsfm_same = Compose([
+            transforms.ToPIL(),
+            transforms.Resize(256),
+            transforms.RandomHorizontalFlip(), # set default
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
@@ -56,10 +64,10 @@ class TransformOnImg:
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
-    def __call__(self, img, use_aux=False):
+    def __call__(self, img, use_aux=False, keep_same=False):
         if self.mode == "pretrain":
-            if use_aux:
-                img = self.trsfm_aux(img)
+            if keep_same:
+                img = self.trsfm_same(img)
             else:
                 img = self.trsfm_basic(img)
         else:
@@ -314,7 +322,7 @@ class HPADataset:
         if self.mode == "pretrain":
             imgs_basic1 = []
             imgs_basic2 = []
-            imgs_aux = []
+            # imgs_aux = []
             anns = []
             for idx in range(index * self.batch_size, (index + 1) * self.batch_size):
                 sid = self.sids[idx]
@@ -324,22 +332,22 @@ class HPADataset:
                     img = Image.open(imgpth).convert('RGB')
                     img = np.asarray(img)
                     img_basic1 = self.transform(img)
-                    img_basic2 = self.transform(img)
+                    img_basic2 = self.transform(img,keep_same=True)
                     imgs_basic1.append(img_basic1)
                     imgs_basic2.append(img_basic2)
                     #img_aux = self.transform(img, use_aux=True)
-                    img_aux = self.transform(img) # three basic view exp
-                    imgs_aux.append(img_aux)
+                    #img_aux = self.transform(img) # three basic view exp
+                    #imgs_aux.append(img_aux)
                     anns.append(ann)
 
             imgs_basic1 = np.stack(imgs_basic1).astype(np.float32)
             imgs_basic2 = np.stack(imgs_basic2).astype(np.float32)
-            imgs_aux = np.stack(imgs_aux).astype(np.float32)
+            #imgs_aux = np.stack(imgs_aux).astype(np.float32)
             anns = np.stack(anns).astype(np.int32)
             n_b, _, n_c, n_w, n_l = imgs_basic1.shape
             imgs_basic1 = imgs_basic1.reshape((n_b, n_c, n_w, n_l))
             imgs_basic2 = imgs_basic2.reshape((n_b, n_c, n_w, n_l))
-            imgs_aux = imgs_aux.reshape((n_b, n_c, n_w, n_l))
+            #imgs_aux = imgs_aux.reshape((n_b, n_c, n_w, n_l))
             batch = (imgs_basic1, imgs_basic2, anns)
             return self.collate_pretrain(batch)
 

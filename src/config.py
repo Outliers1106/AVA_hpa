@@ -10,7 +10,7 @@ import os
 
 def get_pretrain_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-pretrain-new-exp"
+    prefix = "AVA-hpa-pretrain-new-exp-on-aug"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
@@ -51,7 +51,7 @@ def get_pretrain_config():
 
 def get_train_config():
     time_prefix = time.strftime("-%Y%m%d-%H%M%S", time.localtime())
-    prefix = "AVA-hpa-train"
+    prefix = "AVA-hpa-train-on-aug"
     config = ed({
         # base setting
         "description": "this is the description for currnet config file.",
