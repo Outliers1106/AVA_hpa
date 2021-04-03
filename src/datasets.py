@@ -36,7 +36,7 @@ class TransformOnImg:
         ])
         self.trsfm_same = Compose([
             transforms.ToPIL(),
-            transforms.Resize(256),
+            transforms.Resize(224),
             transforms.RandomHorizontalFlip(), # set default
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
