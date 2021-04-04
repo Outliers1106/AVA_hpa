@@ -26,11 +26,12 @@ class TransformOnImg:
         self.trsfm_basic = Compose([
             transforms.ToPIL(),
             #transforms.Resize(256),
-            transforms.Resize(256),
+            transforms.Resize(224),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0),
-            transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
+            transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0.4),
+            #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             #transforms.RandomGrayscale(prob=0.2),
             transforms.RandomHorizontalFlip(), # set default
             transforms.ToTensor(),
