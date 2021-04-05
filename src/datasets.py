@@ -30,9 +30,9 @@ class TransformOnImg:
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0),
-            transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0),
+            #transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
-            #transforms.RandomGrayscale(prob=0.2),
+            transforms.RandomGrayscale(prob=0.2),
             transforms.RandomHorizontalFlip(), # set default
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
