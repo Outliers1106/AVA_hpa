@@ -30,7 +30,7 @@ class TransformOnImg:
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             transforms.RandomGrayscale(prob=0.2),
-            transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0.4),
+            transforms.RandomColorAdjust(0.4, 0.4, 0.4, 0),
             #transforms.RandomResizedCrop(size=224, scale=(0.2, 1.)),
             #transforms.RandomGrayscale(prob=0.2),
             transforms.RandomHorizontalFlip(), # set default
